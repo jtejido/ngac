@@ -22,7 +22,7 @@ func (e *Explain) String() string {
     var i int
     for p := range e.Permissions.Iter() {
         s += p.(string)
-        if i < e.Permissions.Len() {
+        if i < e.Permissions.Len()-1 {
             s += ", "
         }
         i++
@@ -35,7 +35,7 @@ func (e *Explain) String() string {
         var i int
         for p := range policyClass.Operations.Iter() {
             s += p.(string)
-            if i < policyClass.Operations.Len() {
+            if i < policyClass.Operations.Len()-1 {
                 s += ", "
             }
             i++
