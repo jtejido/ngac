@@ -1,7 +1,10 @@
 package epp
 
 import (
+	"github.com/jtejido/ngac/internal/set"
+	"github.com/jtejido/ngac/pdp/service"
 	"github.com/jtejido/ngac/pip/graph"
+	"github.com/jtejido/ngac/pip/obligations"
 )
 
 const (
@@ -9,40 +12,223 @@ const (
 	ASSIGN_EVENT        = "assign"
 	DEASSIGN_FROM_EVENT = "deassign from"
 	DEASSIGN_EVENT      = "deassign"
-	ACCESS_DENIED_EVENT = "deassign"
+	CREATE_NODE_EVENT   = "create node"
+	DELETE_NODE_EVENT   = "delete node"
+	ACCESS_DENIED_EVENT = "access denied"
 )
 
 type EventContext interface {
 	Event() string
 	Target() *graph.Node
+	UserCtx() service.Context
+	MatchesPattern(*obligations.EventPattern, graph.Graph) bool
 }
 
 type eventContext struct {
-	Event  string
-	Target *graph.Node
+	userCtx service.Context
+	event   string
+	target  *graph.Node
 }
 
-func NewEventContext(event string, target *graph.Node) *eventContext {
-	return &eventContext{event, target}
+func NewEventContext(userCtx service.Context, event string, target *graph.Node) *eventContext {
+	return &eventContext{userCtx, event, target}
 }
 
 func (ctx *eventContext) Event() string {
-	return ctx.Event
+	return ctx.event
 }
 
 func (ctx *eventContext) Target() *graph.Node {
-	return ctx.Target
+	return ctx.target
 }
 
-type ObjectAccessEvent struct {
-	eventContext
+func (ctx *eventContext) UserCtx() service.Context {
+	return ctx.userCtx
 }
 
-func NewObjectAccessEvent(event string, target *graph.Node) *ObjectAccessEvent {
-	ans := new(ObjectAccessEvent)
-	ans.Event = event
-	ans.Target = target
-	return ans
+func (ctx *eventContext) MatchesPattern(pattern *obligations.EventPattern, g graph.Graph) bool {
+	if pattern.Operations != nil {
+		var found bool
+		for _, op := range pattern.Operations {
+			if op == ctx.event {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+
+	matchSubject := pattern.Subject
+	matchPolicyClass := pattern.PolicyClass
+	matchTarget := pattern.Target
+
+	return ctx.subjectMatches(g, ctx.userCtx.User(), ctx.userCtx.Process(), matchSubject) &&
+		ctx.pcMatches(ctx.userCtx.User(), ctx.userCtx.Process(), matchPolicyClass) &&
+		ctx.targetMatches(g, ctx.target, matchTarget)
+}
+
+func (ctx *eventContext) subjectMatches(g graph.Graph, user, process string, matchSubject *obligations.Subject) bool {
+	if matchSubject == nil {
+		return true
+	}
+
+	// any user
+	if (matchSubject.AnyUser == nil && matchSubject.Process == nil) || (matchSubject.AnyUser != nil && len(matchSubject.AnyUser) == 0) {
+		return true
+	}
+
+	// get the current user node
+	userNode, err := g.Node(user)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	if ctx.checkAnyUser(g, userNode, matchSubject.AnyUser) {
+		return true
+	}
+
+	if matchSubject.User == userNode.Name {
+		return true
+	}
+
+	return matchSubject.Process != nil && matchSubject.Process.Value == process
+}
+
+func (ctx *eventContext) checkAnyUser(g graph.Graph, userNode *graph.Node, anyUser []string) bool {
+	if anyUser == nil || len(anyUser) == 0 {
+		return true
+	}
+
+	dfs := graph.NewDFS(g)
+
+	// check each user in the anyUser list
+	// there can be users and user attributes
+	for _, u := range anyUser {
+		anyUserNode, err := g.Node(u)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		// if the node in anyUser == the user than return true
+		if anyUserNode.Name == userNode.Name {
+			return true
+		}
+
+		// if the anyUser is not an UA, move to the next one
+		if anyUserNode.Type != graph.UA {
+			continue
+		}
+
+		nodes := set.NewSet()
+		visitor := func(node *graph.Node) error {
+			if node.Name == userNode.Name {
+				nodes.Add(node.Name)
+			}
+
+			return nil
+		}
+		propagator := func(parent, child *graph.Node) error { return nil }
+
+		err = dfs.Traverse(userNode, propagator, visitor, graph.PARENTS)
+		if err != nil {
+			panic(err)
+		}
+
+		if nodes.Contains(anyUserNode.Name) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (ctx *eventContext) pcMatches(user, process string, matchPolicyClass *obligations.PolicyClass) bool {
+	// not yet implemented
+	return true
+}
+
+func (ctx *eventContext) targetMatches(g graph.Graph, target *graph.Node, matchTarget *obligations.Target) bool {
+	if matchTarget == nil {
+		return true
+	}
+
+	if matchTarget.PolicyElements == nil && matchTarget.Containers == nil {
+		return true
+	}
+
+	if matchTarget.Containers != nil {
+		if len(matchTarget.Containers) == 0 {
+			return true
+		}
+
+		// check that target is contained in any container
+		containers := ctx.containersOf(g, target.Name)
+		for _, evrContainer := range matchTarget.Containers {
+			it := containers.Iterator()
+			for it.HasNext() {
+				contNode := it.Next().(*graph.Node)
+				if ctx.nodesMatch(evrContainer, contNode) {
+					return true
+				}
+			}
+		}
+
+		return false
+	} else if matchTarget.PolicyElements != nil {
+		if len(matchTarget.PolicyElements) == 0 {
+			return true
+		}
+
+		// check that target is in the list of policy elements
+		for _, evrNode := range matchTarget.PolicyElements {
+			if ctx.nodesMatch(evrNode, target) {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	return false
+}
+
+func (ctx *eventContext) containersOf(g graph.Graph, name string) set.Set {
+	nodes := set.NewSet()
+	parents := g.Parents(name)
+	for parent := range parents.Iter() {
+		nn, err := g.Node(parent.(string))
+		if err != nil {
+			panic(err)
+		}
+		nodes.Add(nn)
+		nodes.AddFrom(ctx.containersOf(g, parent.(string)))
+	}
+
+	return nodes
+}
+
+func (ctx *eventContext) nodesMatch(evrNode *obligations.EvrNode, node *graph.Node) bool {
+	if evrNode.Name != node.Name {
+		return false
+	}
+
+	if evrNode.Type != node.Type.String() {
+		return false
+	}
+
+	for k, v := range evrNode.Properties {
+		if val, ok := node.Properties.Get(k); ok {
+			if val.(string) != v {
+				return false
+			}
+		} else {
+			return false
+		}
+	}
+
+	return true
 }
 
 type AssignEvent struct {
@@ -50,10 +236,11 @@ type AssignEvent struct {
 	ParentNode *graph.Node
 }
 
-func NewAssignEvent(target, parentNode *graph.Node) *AssignEvent {
+func NewAssignEvent(userCtx service.Context, target, parentNode *graph.Node) *AssignEvent {
 	ans := new(AssignEvent)
-	ans.Event = ASSIGN_EVENT
-	ans.Target = target
+	ans.userCtx = userCtx
+	ans.event = ASSIGN_EVENT
+	ans.target = target
 	ans.ParentNode = parentNode
 	return ans
 }
@@ -63,11 +250,45 @@ type AssignToEvent struct {
 	ChildNode *graph.Node
 }
 
-func NewAssignToEvent(target, childNode *graph.Node) *AssignToEvent {
+func NewAssignToEvent(userCtx service.Context, target, childNode *graph.Node) *AssignToEvent {
 	ans := new(AssignToEvent)
-	ans.Event = ASSIGN_TO_EVENT
+	ans.userCtx = userCtx
+	ans.event = ASSIGN_TO_EVENT
+	ans.target = target
+	ans.ChildNode = childNode
+	return ans
+}
+
+type AssociationEvent struct {
+	eventContext
+	Source, Target *graph.Node
+}
+
+func NewAssociationEvent(userCtx service.Context, source, target *graph.Node) *AssociationEvent {
+	ans := new(AssociationEvent)
+	ans.userCtx = userCtx
+	ans.event = "association"
+	ans.target = target
 	ans.Target = target
-	ans.ChildNode = parentNode
+	ans.Source = source
+	return ans
+}
+
+type CreateNodeEvent struct {
+	eventContext
+	parents set.Set
+}
+
+func NewCreateNodeEvent(userCtx service.Context, deletedNode *graph.Node, initialParent string, additionalParents ...string) *CreateNodeEvent {
+	ans := new(CreateNodeEvent)
+	ans.userCtx = userCtx
+	ans.event = CREATE_NODE_EVENT
+	ans.target = deletedNode
+	ans.parents = set.NewSet()
+	for _, a := range additionalParents {
+		ans.parents.Add(a)
+	}
+	ans.parents.Add(initialParent)
 	return ans
 }
 
@@ -76,10 +297,11 @@ type DeassignEvent struct {
 	ParentNode *graph.Node
 }
 
-func NewDeassignEvent(target, parentNode *graph.Node) *DeassignEvent {
+func NewDeassignEvent(userCtx service.Context, target, parentNode *graph.Node) *DeassignEvent {
 	ans := new(DeassignEvent)
-	ans.Event = DEASSIGN_EVENT
-	ans.Target = target
+	ans.userCtx = userCtx
+	ans.event = DEASSIGN_EVENT
+	ans.target = target
 	ans.ParentNode = parentNode
 	return ans
 }
@@ -89,10 +311,52 @@ type DeassignFromEvent struct {
 	ChildNode *graph.Node
 }
 
-func NewDeassignFromEvent(target, childNode *graph.Node) *DeassignFromEvent {
+func NewDeassignFromEvent(userCtx service.Context, target, childNode *graph.Node) *DeassignFromEvent {
 	ans := new(DeassignFromEvent)
-	ans.Event = DEASSIGN_FROM_EVENT
+	ans.userCtx = userCtx
+	ans.event = DEASSIGN_FROM_EVENT
+	ans.target = target
+	ans.ChildNode = childNode
+	return ans
+}
+
+type DeleteAssociationEvent struct {
+	eventContext
+	Source, Target *graph.Node
+}
+
+func NewDeleteAssociationEvent(userCtx service.Context, source, target *graph.Node) *DeleteAssociationEvent {
+	ans := new(DeleteAssociationEvent)
+	ans.userCtx = userCtx
+	ans.event = "delete association"
+	ans.target = target
 	ans.Target = target
-	ans.ChildNode = parentNode
+	ans.Source = source
+	return ans
+}
+
+type DeleteNodeEvent struct {
+	eventContext
+	parents set.Set
+}
+
+func NewDeleteNodeEvent(userCtx service.Context, deletedNode *graph.Node, parents set.Set) *DeleteNodeEvent {
+	ans := new(DeleteNodeEvent)
+	ans.userCtx = userCtx
+	ans.event = "delete association"
+	ans.target = deletedNode
+	ans.parents = parents
+	return ans
+}
+
+type ObjectAccessEvent struct {
+	eventContext
+}
+
+func NewObjectAccessEvent(userCtx service.Context, event string, target *graph.Node) *ObjectAccessEvent {
+	ans := new(ObjectAccessEvent)
+	ans.userCtx = userCtx
+	ans.event = event
+	ans.target = target
 	return ans
 }

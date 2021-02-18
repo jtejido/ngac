@@ -50,6 +50,20 @@ func newUserContext() (*userContext, context.CancelFunc) {
     return ctx, cancel
 }
 
+func NewUserContext(user string) (*userContext, context.CancelFunc) {
+    ctx, cancel := newUserContext()
+    ctx.SetValue(ContextKeySession, user)
+    ctx.SetValue(ContextKeyProcess, "")
+    return ctx, cancel
+}
+
+func NewUserContextWithProcess(user, process string) (*userContext, context.CancelFunc) {
+    ctx, cancel := newUserContext()
+    ctx.SetValue(ContextKeySession, user)
+    ctx.SetValue(ContextKeyProcess, process)
+    return ctx, cancel
+}
+
 func (ctx *userContext) SetValue(key, value interface{}) {
     ctx.Context = context.WithValue(ctx.Context, key, value)
 }

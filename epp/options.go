@@ -1,18 +1,15 @@
 package epp
 
-import (
-	"github.com/jtejido/ngac/epp/functions"
-)
-
 type EPPOptions struct {
-	executors []functions.FunctionExecutor
+	executors []FunctionExecutor
 }
 
-func NewEPPOptions(executors ...functions.FunctionExecutor) *EPPOptions {
+func NewEPPOptions(executors ...FunctionExecutor) *EPPOptions {
 	eo := new(EPPOptions)
 	eo.executors = executors
+	return eo
 }
 
-func (eo *EPPOptions) Executors() []functions.FunctionExecutor {
+func (eo *EPPOptions) Executors() []FunctionExecutor {
 	return eo.executors
 }

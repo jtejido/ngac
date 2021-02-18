@@ -5,7 +5,6 @@ import (
 	"github.com/jtejido/ngac/pap"
 	"github.com/jtejido/ngac/pdp/audit"
 	"github.com/jtejido/ngac/pdp/decider"
-	"github.com/jtejido/ngac/pdp/service"
 )
 
 type TokenString string
@@ -14,7 +13,7 @@ type PDP struct {
 	// epp                 *epp.EPP
 	pap     *pap.PAP
 	decider decider.Decider
-	auditor auditor.Auditor
+	auditor audit.Auditor
 }
 
 // func NewPDP(pap *pap.PAP, eppOptions *epp.EPPOptions) (pdp *PDP, err error) {

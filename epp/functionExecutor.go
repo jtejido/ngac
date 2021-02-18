@@ -1,4 +1,10 @@
-package functions
+package epp
+
+import (
+	"github.com/jtejido/ngac/pip/graph"
+	"github.com/jtejido/ngac/pip/obligations"
+	"github.com/jtejido/ngac/pip/prohibitions"
+)
 
 type FunctionExecutor interface {
 
@@ -26,5 +32,5 @@ type FunctionExecutor interface {
 	 * @throws PMException if there is any error executing the function
 	 */
 	Exec(graph graph.Graph, prohibitions prohibitions.Prohibitions, obligations obligations.Obligations,
-		eventCtx *events.EventContext, function *obligations.Function, functionEvaluator *epp.FunctionEvaluator) (interface{}, error)
+		eventCtx EventContext, function *obligations.Function, functionEvaluator *FunctionEvaluator) (interface{}, error)
 }

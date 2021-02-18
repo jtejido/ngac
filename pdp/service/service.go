@@ -1,42 +1,40 @@
 package service
 
 import (
+	"github.com/jtejido/ngac/common"
+	"github.com/jtejido/ngac/pap/policy"
+	"github.com/jtejido/ngac/pdp/audit"
 	"github.com/jtejido/ngac/pdp/decider"
-	"github.com/jtejido/ngac/pdp/policy"
 	"github.com/jtejido/ngac/pip/graph"
+	"github.com/jtejido/ngac/pip/obligations"
+	"github.com/jtejido/ngac/pip/prohibitions"
 )
 
 type Service struct {
-	decider     decider.Decider
+	pap         common.FunctionalEntity
 	superPolicy *policy.SuperPolicy
+	UserCtx     Context
+	decider     decider.Decider
+	auditor     audit.Auditor
+}
+
+func (s *Service) GraphAdmin() graph.Graph {
+	return s.pap.Graph()
+}
+
+func (s *Service) ProhibitionsAdmin() prohibitions.Prohibitions {
+	return s.pap.Prohibitions()
+}
+
+func (s *Service) ObligationsAdmin() obligations.Obligations {
+	return s.pap.Obligations()
+
 }
 
 func (s *Service) Decider() decider.Decider {
 	return s.decider
 }
 
-func (s *Service) hasPermissions(ctx Context, targetNode *graph.Node, permissions ...interface{}) bool {
-	name := targetNode.Name
-	if targetNode.Type == graph.PC {
-		temp, found := targetNode.Properties.Get(graph.REP_PROPERTY)
-		if !found {
-			return false
-		}
-		name = temp.(string)
-	}
-
-	perms := s.decider.List(ctx.User(), ctx.Process(), name)
-
-	for _, p := range permissions {
-		if p == decider.ANY_OPERATIONS {
-			return perms.Len() > 0
-		}
-	}
-
-	if perms.Contains(graph.ALL_OPS) {
-		return true
-	}
-
-	return perms.Len() > 0 || perms.Contains(permissions...)
-
+func (s *Service) Auditor() audit.Auditor {
+	return s.auditor
 }
