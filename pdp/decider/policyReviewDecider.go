@@ -8,11 +8,6 @@ import (
 	"github.com/jtejido/ngac/pip/prohibitions"
 )
 
-const (
-	ANY_OPERATIONS = "any"
-	ALL_OPERATIONS = "*"
-)
-
 var (
 	prd *PReviewDecider
 	_   Decider = prd
