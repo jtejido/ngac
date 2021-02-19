@@ -1,12 +1,10 @@
 package prohibitions
 
-import "github.com/jtejido/ngac/internal/set"
-
 type Prohibitions interface {
-	AddProhibition(*Prohibition) error
-	All() set.Set
-	GetProhibition(string) (*Prohibition, error)
-	ProhibitionsFor(string) set.Set
-	UpdateProhibition(string, *Prohibition) error
-	RemoveProhibition(string)
+	Add(*Prohibition)
+	All() []*Prohibition
+	Get(string) *Prohibition
+	ProhibitionsFor(string) []*Prohibition
+	Update(string, *Prohibition)
+	Remove(string)
 }

@@ -1,107 +1,106 @@
 package prohibitions
 
 import (
-	"fmt"
-	"github.com/jtejido/ngac/internal/omap"
-	"github.com/jtejido/ngac/internal/set"
 	"strings"
+	"sync"
 )
 
 var (
 	_ Prohibitions = &MemProhibitions{}
 )
 
-// embeds a regular map interface
 type MemProhibitions struct {
-	omap.OrderedMap
+	prohibitions map[string][]*Prohibition
+	sync.RWMutex
 }
 
 func NewMemProhibitions() *MemProhibitions {
-	return &MemProhibitions{omap.NewOrderedMap()}
+	return &MemProhibitions{prohibitions: make(map[string][]*Prohibition)}
 }
 
-func (mp *MemProhibitions) AddProhibition(prohibition *Prohibition) error {
+func (mp *MemProhibitions) Add(prohibition *Prohibition) {
+	mp.Lock()
 	if prohibition == nil {
-		return fmt.Errorf("a nil prohibition was received when creating a prohibition")
+		panic("a nil prohibition was received when creating a prohibition")
 	}
 
 	if len(prohibition.Name) == 0 {
-		return fmt.Errorf("a nil or empty name was provided when creating a prohibition")
+		panic("a nil or empty name was provided when creating a prohibition")
 	}
 
 	prohibition = prohibition.Clone()
 	subject := prohibition.Subject
-	var exPros set.Set
-	if v, ok := mp.Get(subject); ok {
-		exPros = v.(set.Set)
-	} else {
-		exPros = set.NewSet()
+	exPros := make([]*Prohibition, 0)
+	if v, ok := mp.prohibitions[subject]; ok {
+		exPros = v
 	}
 
-	exPros.Add(prohibition)
+	exPros = append(exPros, prohibition)
 
-	mp.Add(subject, exPros)
+	mp.prohibitions[subject] = exPros
+	mp.Unlock()
+}
+
+func (mp *MemProhibitions) All() []*Prohibition {
+	pros := make([]*Prohibition, 0)
+	mp.RLock()
+	for _, pt := range mp.prohibitions {
+		for _, p := range pt {
+			pros = append(pros, p.Clone())
+		}
+	}
+	mp.RUnlock()
+	return pros
+}
+
+func (mp *MemProhibitions) Get(prohibitionName string) *Prohibition {
+	mp.RLock()
+	defer mp.RUnlock()
+	for _, ps := range mp.prohibitions {
+		for _, p := range ps {
+			if strings.ToLower(p.Name) == strings.ToLower(prohibitionName) {
+				return p.Clone()
+			}
+		}
+	}
 
 	return nil
 }
 
-func (mp *MemProhibitions) All() set.Set {
-	pros := set.NewSet()
-	for _, pList := range mp.Values() {
-		pt := pList.(set.Set)
-		for p := range pt.Iter() {
-			pros.Add(p.(*Prohibition).Clone())
+func (mp *MemProhibitions) ProhibitionsFor(subject string) []*Prohibition {
+	ret := make([]*Prohibition, 0)
+	mp.RLock()
+	if pros, ok := mp.prohibitions[subject]; ok {
+		for _, p := range pros {
+			ret = append(ret, p.Clone())
 		}
 	}
-
-	return pros
-}
-
-func (mp *MemProhibitions) GetProhibition(prohibitionName string) (*Prohibition, error) {
-	for _, ps := range mp.Values() {
-		for _, p := range ps.([]*Prohibition) {
-			if strings.ToLower(p.Name) == strings.ToLower(prohibitionName) {
-				return p.Clone(), nil
-			}
-		}
-	}
-
-	return nil, fmt.Errorf("a prohibition does not exist with the name %s", prohibitionName)
-}
-
-func (mp *MemProhibitions) ProhibitionsFor(subject string) set.Set {
-	ret := set.NewSet()
-	if v, ok := mp.Get(subject); ok {
-		pros := v.(set.Set)
-		for p := range pros.Iter() {
-			ret.Add(p.(*Prohibition).Clone())
-		}
-	}
-
+	mp.RUnlock()
 	return ret
 }
 
-func (mp *MemProhibitions) UpdateProhibition(prohibitionName string, prohibition *Prohibition) error {
+func (mp *MemProhibitions) Update(prohibitionName string, prohibition *Prohibition) {
 	if prohibition == nil {
-		return fmt.Errorf("a null prohibition was provided when updating a prohibition")
+		panic("a null prohibition was provided when updating a prohibition")
 	}
-
 	prohibition.Name = prohibitionName
-	mp.RemoveProhibition(prohibition.Name)
+
+	mp.Lock()
+	mp.Remove(prohibition.Name)
 	// add the updated prohibition
-	return mp.AddProhibition(prohibition.Clone())
+	mp.Add(prohibition.Clone())
+	mp.Unlock()
 }
 
-func (mp *MemProhibitions) RemoveProhibition(prohibitionName string) {
-	for subject := range mp.Keys() {
-		if v, ok := mp.Get(subject); ok {
-			ps := v.(set.Set).ToSlice()
-			for i, p := range ps {
-				if p.(*Prohibition).Name == prohibitionName {
-					ps = append(ps[:i], ps[i+1:]...)
-					mp.Add(subject, ps)
-				}
+func (mp *MemProhibitions) Remove(prohibitionName string) {
+	mp.Lock()
+	for subject, ps := range mp.prohibitions {
+		for i := 0; i < len(ps); i++ {
+			if ps[i].Name == prohibitionName {
+				ps = append(ps[:i], ps[i+1:]...)
+				mp.prohibitions[subject] = ps
 			}
 		}
 	}
+	mp.Unlock()
 }
