@@ -13,6 +13,13 @@ type PReviewAuditor struct {
 }
 
 func NewPReviewAuditor(graph graph.Graph, resourceOps operations.OperationSet) *PReviewAuditor {
+    if graph == nil {
+        panic("graph cannot be nil")
+    }
+
+    if resourceOps == nil {
+        panic("resourceOps cannot be nil")
+    }
     return &PReviewAuditor{graph, resourceOps}
 }
 
