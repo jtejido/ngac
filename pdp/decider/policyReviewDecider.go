@@ -359,7 +359,10 @@ func (pr *PReviewDecider) processUserDAG(subject, process string) (*userContext,
 	}
 
 	borderTargets := make(map[string]set.Set)
-	reachedProhibitions := set.NewSet(pr.prohibitions.ProhibitionsFor(process).ToSlice()...)
+	reachedProhibitions := set.NewSet()
+	for _, p := range pr.prohibitions.ProhibitionsFor(process) {
+		reachedProhibitions.Add(p)
+	}
 
 	// if the start node is an UA, get it's associations
 	if start.Type == graph.UA {
@@ -372,7 +375,9 @@ func (pr *PReviewDecider) processUserDAG(subject, process string) (*userContext,
 	}
 
 	visitor := func(node *graph.Node) error {
-		reachedProhibitions.AddFrom(pr.prohibitions.ProhibitionsFor(node.Name))
+		for _, p := range pr.prohibitions.ProhibitionsFor(node.Name) {
+			reachedProhibitions.Add(p)
+		}
 
 		//get the parents of the subject to start bfs on user side
 		parents := pr.graph.Parents(node.Name)
