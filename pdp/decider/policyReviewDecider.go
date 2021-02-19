@@ -1,7 +1,6 @@
 package decider
 
 import (
-	"fmt"
 	"github.com/jtejido/ngac/internal/set"
 	"github.com/jtejido/ngac/operations"
 	"github.com/jtejido/ngac/pip/graph"
@@ -20,15 +19,17 @@ type PReviewDecider struct {
 	ResourceOps  operations.OperationSet
 }
 
-func NewPReviewDecider(graph graph.Graph, resourceOps operations.OperationSet) (*PReviewDecider, error) {
+func NewPReviewDecider(graph graph.Graph, resourceOps operations.OperationSet) *PReviewDecider {
 	return NewPReviewDeciderWithProhibitions(graph, prohibitions.NewMemProhibitions(), resourceOps)
 }
 
-func NewPReviewDeciderWithProhibitions(graph graph.Graph, prohibs prohibitions.Prohibitions, resourceOps operations.OperationSet) (*PReviewDecider, error) {
+func NewPReviewDeciderWithProhibitions(graph graph.Graph, prohibs prohibitions.Prohibitions, resourceOps operations.OperationSet) *PReviewDecider {
 	if graph == nil {
-		return nil, fmt.Errorf("graph cannot be nil")
+		panic("graph cannot be nil")
 	}
-
+	if resourceOps == nil {
+		panic("resourceOps cannot be nil")
+	}
 	if prohibs == nil {
 		prohibs = prohibitions.NewMemProhibitions()
 	}
@@ -37,7 +38,7 @@ func NewPReviewDeciderWithProhibitions(graph graph.Graph, prohibs prohibitions.P
 	d.graph = graph
 	d.prohibitions = prohibs
 	d.ResourceOps = resourceOps
-	return d, nil
+	return d
 }
 
 func (pr *PReviewDecider) Check(subject, process, target string, perms ...interface{}) bool {
