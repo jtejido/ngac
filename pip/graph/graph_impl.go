@@ -5,6 +5,7 @@ import (
 	"github.com/jtejido/ngac/internal/omap"
 	"github.com/jtejido/ngac/internal/set"
 	"github.com/jtejido/ngac/operations"
+	"sync"
 )
 
 const (
@@ -13,6 +14,7 @@ const (
 
 // This is an in-memory dag implementation.
 type MemGraph struct {
+	sync.RWMutex
 	nodes map[string]*Node // contains all nodes
 	from  map[string]map[string]Edge
 	to    map[string]map[string]Edge
@@ -29,6 +31,7 @@ func NewMemGraph() *MemGraph {
 }
 
 func (mg *MemGraph) addNode(n *Node) {
+	mg.Lock()
 	if _, exists := mg.nodes[n.Name]; exists {
 		panic(fmt.Sprintf("simple: node collision: %s", n.Name))
 	}
@@ -36,10 +39,14 @@ func (mg *MemGraph) addNode(n *Node) {
 	mg.nodes[n.Name] = n
 	mg.from[n.Name] = make(map[string]Edge)
 	mg.to[n.Name] = make(map[string]Edge)
+	mg.Unlock()
 }
 
-func (mg *MemGraph) node(name string) *Node {
-	return mg.nodes[name]
+func (mg *MemGraph) node(name string) (n *Node) {
+	mg.RLock()
+	n, _ = mg.nodes[name]
+	mg.RUnlock()
+	return
 }
 
 func (mg *MemGraph) setEdge(e Edge) error {
@@ -51,25 +58,32 @@ func (mg *MemGraph) setEdge(e Edge) error {
 	if sid == tid {
 		return fmt.Errorf("adding self edge")
 	}
-
-	if _, ok := mg.nodes[sid]; !ok {
+	var found1, found2 bool
+	mg.Lock()
+	_, found1 = mg.nodes[sid]
+	_, found2 = mg.nodes[tid]
+	if !found1 {
 		return fmt.Errorf("source vertex not in the graph.")
 	}
 
-	if _, ok := mg.nodes[tid]; !ok {
+	if !found2 {
 		return fmt.Errorf("target vertex not in the graph.")
 	}
 
 	mg.from[sid][tid] = e
 	mg.to[tid][sid] = e
-
+	mg.Unlock()
 	return nil
 }
 
 func (mg *MemGraph) removeNode(name string) {
-	if _, ok := mg.nodes[name]; !ok {
+	var found bool
+	mg.Lock()
+	_, found = mg.nodes[name]
+	if !found {
 		return
 	}
+
 	delete(mg.nodes, name)
 
 	for from := range mg.from[name] {
@@ -81,30 +95,33 @@ func (mg *MemGraph) removeNode(name string) {
 		delete(mg.from[to], name)
 	}
 	delete(mg.to, name)
+	mg.Unlock()
 }
 
 func (mg *MemGraph) incomingEdgesOf(name string) []Edge {
+	var edges []Edge
+	mg.RLock()
 	if _, ok := mg.to[name]; !ok {
 		return []Edge{}
 	}
 
-	var edges []Edge
 	for _, edge := range mg.to[name] {
 		edges = append(edges, edge)
 	}
 	if len(edges) == 0 {
 		return []Edge{}
 	}
-
+	mg.RUnlock()
 	return edges
 }
 
 func (mg *MemGraph) outgoingEdgesOf(name string) []Edge {
+	var edges []Edge
+	mg.RLock()
 	if _, ok := mg.from[name]; !ok {
 		return []Edge{}
 	}
 
-	var edges []Edge
 	for _, edge := range mg.from[name] {
 		edges = append(edges, edge)
 	}
@@ -112,18 +129,20 @@ func (mg *MemGraph) outgoingEdgesOf(name string) []Edge {
 	if len(edges) == 0 {
 		return []Edge{}
 	}
-
+	mg.RUnlock()
 	return edges
 }
 
 func (mg *MemGraph) hasEdgeFromTo(u, v string) bool {
-	if _, ok := mg.from[u][v]; !ok {
-		return false
-	}
-	return true
+	var found bool
+	mg.RLock()
+	_, found = mg.from[u][v]
+	mg.RUnlock()
+	return found
 }
 
 func (mg *MemGraph) removeEdge(fid, tid string) error {
+	mg.Lock()
 	if _, ok := mg.nodes[fid]; !ok {
 		return fmt.Errorf("source vertex not in the graph.")
 	}
@@ -133,6 +152,7 @@ func (mg *MemGraph) removeEdge(fid, tid string) error {
 
 	delete(mg.from[fid], tid)
 	delete(mg.to[tid], fid)
+	mg.Unlock()
 	return nil
 }
 
