@@ -1,7 +1,7 @@
 package obligations
 
 import (
-    "github.com/jtejido/ngac/internal/omap"
+    "sync"
 )
 
 var (
@@ -9,62 +9,79 @@ var (
 )
 
 type MemObligations struct {
-    omap.OrderedMap
+    obligations map[string]*Obligation
+    sync.RWMutex
 }
 
 func NewMemObligations() *MemObligations {
-    return &MemObligations{omap.NewOrderedMap()}
+    return &MemObligations{obligations: make(map[string]*Obligation)}
 }
 
-func (mo *MemObligations) AddObligation(obligation *Obligation, enable bool) error {
-    obligation.Enabled = true
-    mo.Add(obligation.Label, obligation.Clone())
-    return nil
-}
-
-func (mo *MemObligations) GetObligation(label string) *Obligation {
-    if v, ok := mo.Get(label); ok {
-        return v.(*Obligation).Clone()
+func (mo *MemObligations) Add(obligation *Obligation, enable bool) {
+    if obligation == nil {
+        panic("a nil obligation was received when creating a obligation")
     }
+    mo.Lock()
+    obligation.Enabled = true
+    mo.obligations[obligation.Label] = obligation.Clone()
+    mo.Unlock()
+}
 
-    return nil
+func (mo *MemObligations) Get(label string) (ob *Obligation) {
+    mo.RLock()
+    ob, _ = mo.obligations[label]
+    mo.RUnlock()
+    return
 }
 
 func (mo *MemObligations) All() []*Obligation {
     obs := make([]*Obligation, 0)
-    for _, o := range mo.Values() {
-        obs = append(obs, o.(*Obligation).Clone())
+    mo.Lock()
+    for _, o := range mo.obligations {
+        obs = append(obs, o.Clone())
     }
+    mo.Unlock()
     return obs
 }
 
-func (mo *MemObligations) UpdateObligation(label string, obligation *Obligation) {
+func (mo *MemObligations) Update(label string, obligation *Obligation) {
+    if obligation == nil {
+        panic("a null obligation was provided when updating a obligation")
+    }
     updatedLabel := obligation.Label
+
+    mo.Lock()
     if updatedLabel != label {
-        mo.Remove(label)
+        delete(mo.obligations, label)
     }
 
-    mo.Add(label, obligation.Clone())
+    mo.obligations[label] = obligation.Clone()
+    mo.Unlock()
 }
 
-func (mo *MemObligations) RemoveObligation(label string) {
-    mo.Remove(label)
+func (mo *MemObligations) Remove(label string) {
+    mo.Lock()
+    delete(mo.obligations, label)
+    mo.Unlock()
 }
 
 func (mo *MemObligations) SetEnable(label string, enabled bool) {
-    if obligation, ok := mo.Get(label); ok {
-        obligation.(*Obligation).Enabled = enabled
-        mo.UpdateObligation(label, obligation.(*Obligation))
+    mo.Lock()
+    if obligation, ok := mo.obligations[label]; ok {
+        obligation.Enabled = enabled
+        mo.Update(label, obligation)
     }
+    mo.Unlock()
 }
 
 func (mo *MemObligations) GetEnabled() []*Obligation {
     obs := make([]*Obligation, 0)
-    for _, o := range mo.Values() {
-        if o.(*Obligation).Enabled {
-            obs = append(obs, o.(*Obligation))
+    mo.RLock()
+    for _, o := range mo.obligations {
+        if o.Enabled {
+            obs = append(obs, o)
         }
     }
-
+    mo.RUnlock()
     return obs
 }

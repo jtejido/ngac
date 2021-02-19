@@ -1,11 +1,11 @@
 package obligations
 
 type Obligations interface {
-	AddObligation(*Obligation, bool) error
-	GetObligation(string) *Obligation
+	Add(*Obligation, bool)
+	Get(string) *Obligation
 	All() []*Obligation
-	UpdateObligation(string, *Obligation)
-	RemoveObligation(string)
+	Update(string, *Obligation)
+	Remove(string)
 	SetEnable(string, bool)
 	GetEnabled() []*Obligation
 }
