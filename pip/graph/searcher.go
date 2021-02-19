@@ -22,7 +22,7 @@ type Visitor func(*Node) error
 
 type BFS struct {
 	graph Graph
-	Seen  set.Set
+	seen  set.Set
 }
 
 func NewBFS(gr Graph) *BFS {
@@ -33,9 +33,9 @@ func (bfs *BFS) Traverse(start *Node, propagator Propagator, visitor Visitor, di
 	// set up a queue to ensure FIFO
 	queue := list.New()
 	// set up a set to ensure nodes are only visited once
-	bfs.Seen = set.NewSet()
+	bfs.seen = set.NewSet()
 	queue.PushBack(start)
-	bfs.Seen.Add(start.Name)
+	bfs.seen.Add(start.Name)
 
 	for queue.Len() > 0 {
 		qval := queue.Front()
@@ -52,13 +52,13 @@ func (bfs *BFS) Traverse(start *Node, propagator Propagator, visitor Visitor, di
 			}
 
 			// if this node has already been seen, we don't need to se it again
-			if bfs.Seen.Contains(n.Name) {
+			if bfs.seen.Contains(n.Name) {
 				continue
 			}
 
 			// add the node to the queue and the seen set
 			queue.PushBack(n)
-			bfs.Seen.Add(n.Name)
+			bfs.seen.Add(n.Name)
 
 			// propagate from the nextLevel to the current node
 			if err := propagator(node, n); err != nil {
@@ -78,7 +78,6 @@ func (bfs *BFS) nextLevel(node string, direction Direction) set.Set {
 	}
 
 	return bfs.graph.Children(node)
-
 }
 
 type DFS struct {
@@ -98,17 +97,9 @@ func (dfs *DFS) Traverse(start *Node, propagator Propagator, visitor Visitor, di
 	// mark the node as visited
 	dfs.visited.Add(start.Name)
 
-	var nodes set.Set
-	if direction == PARENTS {
-		nodes = dfs.graph.Parents(start.Name)
-	} else {
-		nodes = dfs.graph.Children(start.Name)
-	}
-
-	it := nodes.Iterator()
-	for it.HasNext() {
-		n := it.Next().(string)
-		node, err := dfs.graph.Node(n)
+	nextLevel := dfs.nextLevel(start.Name, direction)
+	for s := range nextLevel.Iter() {
+		node, err := dfs.graph.Node(s.(string))
 		if err != nil {
 			return err
 		}
@@ -124,4 +115,12 @@ func (dfs *DFS) Traverse(start *Node, propagator Propagator, visitor Visitor, di
 
 	// after processing the parents, visit the start node
 	return visitor(start)
+}
+
+func (dfs *DFS) nextLevel(node string, direction Direction) set.Set {
+	if direction == PARENTS {
+		return dfs.graph.Parents(node)
+	}
+
+	return dfs.graph.Children(node)
 }
