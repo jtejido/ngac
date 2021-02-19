@@ -13,16 +13,40 @@ var rwe = operations.NewOperationSet("read", "write", "execute")
 func TestHasPermission(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
-	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
-	oa1, _ := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
-	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name)
-	o1, _ := g.CreateNode("o1", graph.O, nil, oa1.Name)
-	g.CreateNode("o2", graph.O, nil, oa1.Name)
-	g.CreateNode("o3", graph.O, nil, oa1.Name)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
+	ua1, err := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	oa1, err := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	u1, err := g.CreateNode("u1", graph.U, nil, ua1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	o1, err := g.CreateNode("o1", graph.O, nil, oa1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	_, err = g.CreateNode("o2", graph.O, nil, oa1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	_, err = g.CreateNode("o3", graph.O, nil, oa1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
 
-	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read", "write", "unknown-op"))
-	decider, _ := NewPReviewDecider(g, rwe)
+	err = g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read", "write", "unknown-op"))
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	decider := NewPReviewDecider(g, rwe)
 
 	if !decider.Check(u1.Name, "", o1.Name, "read", "write") {
 		t.Fatalf("failed to check permission from source to target node")
@@ -68,7 +92,7 @@ func TestFilter(t *testing.T) {
 
 	nodeIDs := set.NewSet(o1.Name, o2.Name, o3.Name, oa1.Name)
 
-	decider, _ := NewPReviewDecider(g, rwe)
+	decider := NewPReviewDecider(g, rwe)
 
 	if !nodeIDs.Contains(decider.Filter(u1.Name, "", nodeIDs, "read").ToSlice()...) {
 		t.Fatalf("failed to check filtered node set")
@@ -78,17 +102,40 @@ func TestFilter(t *testing.T) {
 func TestChildren(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
-	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
-	oa1, _ := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
-	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name)
-	o1, _ := g.CreateNode("o1", graph.O, nil, oa1.Name)
-	o2, _ := g.CreateNode("o2", graph.O, nil, oa1.Name)
-	o3, _ := g.CreateNode("o3", graph.O, nil, oa1.Name)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
+	ua1, err := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	oa1, err := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	u1, err := g.CreateNode("u1", graph.U, nil, ua1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	o1, err := g.CreateNode("o1", graph.O, nil, oa1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	o2, err := g.CreateNode("o2", graph.O, nil, oa1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	o3, err := g.CreateNode("o3", graph.O, nil, oa1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
 
-	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read", "write"))
-
-	decider, _ := NewPReviewDecider(g, rwe)
+	err = g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read", "write"))
+	if err != nil {
+		t.Fatalf("failed to associate: %s", err)
+	}
+	decider := NewPReviewDecider(g, rwe)
 	children := decider.Children(u1.Name, "", oa1.Name)
 	nodeIDs := set.NewSet(o1.Name, o2.Name, o3.Name)
 
@@ -100,17 +147,40 @@ func TestChildren(t *testing.T) {
 func TestAccessibleNodes(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
 	oa1, _ := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
 	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
 	o1, _ := g.CreateNode("o1", graph.O, nil, oa1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
 	o2, _ := g.CreateNode("o2", graph.O, nil, oa1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
 	o3, _ := g.CreateNode("o3", graph.O, nil, oa1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
 
-	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read", "write"))
-
-	decider, _ := NewPReviewDecider(g, rwe)
+	err = g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read", "write"))
+	if err != nil {
+		t.Fatalf("failed to associate: %s", err)
+	}
+	decider := NewPReviewDecider(g, rwe)
 	accessibleNodes := decider.CapabilityList(u1.Name, "")
 
 	if v, found := accessibleNodes[oa1.Name]; !found {
@@ -150,15 +220,32 @@ func TestAccessibleNodes(t *testing.T) {
 func TestGraph1(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
-	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
-	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name)
-	oa1, _ := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
-	o1, _ := g.CreateNode("o1", graph.O, nil, oa1.Name)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
+	ua1, err := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	u1, err := g.CreateNode("u1", graph.U, nil, ua1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	oa1, err := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	o1, err := g.CreateNode("o1", graph.O, nil, oa1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
 
-	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read", "write"))
-
-	decider, _ := NewPReviewDecider(g, rwe)
+	err = g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read", "write"))
+	if err != nil {
+		t.Fatalf("failed to associate: %s", err)
+	}
+	decider := NewPReviewDecider(g, rwe)
 
 	if !decider.List(u1.Name, "", o1.Name).Contains("read", "write") {
 		t.Fatalf("permissions expected to be read and write")
@@ -168,19 +255,45 @@ func TestGraph1(t *testing.T) {
 func TestGraph2(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
-	pc2, _ := g.CreatePolicyClass("pc2", nil)
-	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name, pc2.Name)
-	ua2, _ := g.CreateNode("ua2", graph.UA, nil, pc1.Name)
-	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name, ua2.Name)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
+	pc2, err := g.CreatePolicyClass("pc2", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
+	ua1, err := g.CreateNode("ua1", graph.UA, nil, pc1.Name, pc2.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	ua2, err := g.CreateNode("ua2", graph.UA, nil, pc1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	u1, err := g.CreateNode("u1", graph.U, nil, ua1.Name, ua2.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
 
-	oa1, _ := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
-	oa2, _ := g.CreateNode("oa2", graph.OA, nil, pc2.Name)
-	o1, _ := g.CreateNode("o1", graph.O, nil, oa1.Name, oa2.Name)
+	oa1, err := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	oa2, err := g.CreateNode("oa2", graph.OA, nil, pc2.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	o1, err := g.CreateNode("o1", graph.O, nil, oa1.Name, oa2.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
 
-	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read"))
-
-	decider, _ := NewPReviewDecider(g, rwe)
+	err = g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read"))
+	if err != nil {
+		t.Fatalf("failed to associate: %s", err)
+	}
+	decider := NewPReviewDecider(g, rwe)
 
 	if decider.List(u1.Name, "", o1.Name).Len() != 0 {
 		t.Fatalf("permissions expected to be empty")
@@ -190,15 +303,32 @@ func TestGraph2(t *testing.T) {
 func TestGraph3(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
-	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
-	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name)
-	oa1, _ := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
-	o1, _ := g.CreateNode("o1", graph.O, nil, oa1.Name)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
+	ua1, err := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	u1, err := g.CreateNode("u1", graph.U, nil, ua1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	oa1, err := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	o1, err := g.CreateNode("o1", graph.O, nil, oa1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
 
-	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read", "write"))
-
-	decider, _ := NewPReviewDecider(g, rwe)
+	err = g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read", "write"))
+	if err != nil {
+		t.Fatalf("failed to associate: %s", err)
+	}
+	decider := NewPReviewDecider(g, rwe)
 
 	if !decider.List(u1.Name, "", o1.Name).Contains("read", "write") {
 		t.Fatalf("permissions expected to be read and write")
@@ -208,17 +338,41 @@ func TestGraph3(t *testing.T) {
 func TestGraph4(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
-	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
-	ua2, _ := g.CreateNode("ua2", graph.UA, nil, pc1.Name)
-	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name, ua2.Name)
-	oa1, _ := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
-	o1, _ := g.CreateNode("o1", graph.O, nil, oa1.Name)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
+	ua1, err := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	ua2, err := g.CreateNode("ua2", graph.UA, nil, pc1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	u1, err := g.CreateNode("u1", graph.U, nil, ua1.Name, ua2.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	oa1, err := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	o1, err := g.CreateNode("o1", graph.O, nil, oa1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
 
-	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read"))
-	g.Associate(ua2.Name, oa1.Name, operations.NewOperationSet("write"))
+	err = g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read"))
+	if err != nil {
+		t.Fatalf("failed to associate: %s", err)
+	}
+	err = g.Associate(ua2.Name, oa1.Name, operations.NewOperationSet("write"))
+	if err != nil {
+		t.Fatalf("failed to associate: %s", err)
+	}
 
-	decider, _ := NewPReviewDecider(g, rwe)
+	decider := NewPReviewDecider(g, rwe)
 
 	if !decider.List(u1.Name, "", o1.Name).Contains("read", "write") {
 		t.Fatalf("permissions expected to be read and write")
@@ -228,19 +382,49 @@ func TestGraph4(t *testing.T) {
 func TestGraph5(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
-	pc2, _ := g.CreatePolicyClass("pc2", nil)
-	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
-	ua2, _ := g.CreateNode("ua2", graph.UA, nil, pc2.Name)
-	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name, ua2.Name)
-	oa1, _ := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
-	oa2, _ := g.CreateNode("oa2", graph.OA, nil, pc2.Name)
-	o1, _ := g.CreateNode("o1", graph.O, nil, oa1.Name, oa2.Name)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
+	pc2, err := g.CreatePolicyClass("pc2", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
+	ua1, err := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	ua2, err := g.CreateNode("ua2", graph.UA, nil, pc2.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	u1, err := g.CreateNode("u1", graph.U, nil, ua1.Name, ua2.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	oa1, err := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	oa2, err := g.CreateNode("oa2", graph.OA, nil, pc2.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
+	o1, err := g.CreateNode("o1", graph.O, nil, oa1.Name, oa2.Name)
+	if err != nil {
+		t.Fatalf("failed to create node: %s", err)
+	}
 
-	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read"))
-	g.Associate(ua2.Name, oa2.Name, operations.NewOperationSet("read", "write"))
+	err = g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read"))
+	if err != nil {
+		t.Fatalf("failed to associate: %s", err)
+	}
+	err = g.Associate(ua2.Name, oa2.Name, operations.NewOperationSet("read", "write"))
+	if err != nil {
+		t.Fatalf("failed to associate: %s", err)
+	}
 
-	decider, _ := NewPReviewDecider(g, rwe)
+	decider := NewPReviewDecider(g, rwe)
 
 	if !decider.List(u1.Name, "", o1.Name).Contains("read") {
 		t.Fatalf("permissions expected to be read")
@@ -250,8 +434,14 @@ func TestGraph5(t *testing.T) {
 func TestGraph6(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
-	pc2, _ := g.CreatePolicyClass("pc2", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
+	pc2, err := g.CreatePolicyClass("pc2", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
 	ua2, _ := g.CreateNode("ua2", graph.UA, nil, pc2.Name)
 	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name, ua2.Name)
@@ -262,7 +452,7 @@ func TestGraph6(t *testing.T) {
 	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read", "write"))
 	g.Associate(ua2.Name, oa2.Name, operations.NewOperationSet("read"))
 
-	decider, _ := NewPReviewDecider(g, rwe)
+	decider := NewPReviewDecider(g, rwe)
 
 	if !decider.List(u1.Name, "", o1.Name).Contains("read") {
 		t.Fatalf("permissions expected to be read")
@@ -272,8 +462,14 @@ func TestGraph6(t *testing.T) {
 func TestGraph7(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
-	pc2, _ := g.CreatePolicyClass("pc2", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
+	pc2, err := g.CreatePolicyClass("pc2", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
 	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name)
 	oa1, _ := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
@@ -282,7 +478,7 @@ func TestGraph7(t *testing.T) {
 
 	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read", "write"))
 
-	decider, _ := NewPReviewDecider(g, rwe)
+	decider := NewPReviewDecider(g, rwe)
 
 	if decider.List(u1.Name, "", o1.Name).Len() > 0 {
 		t.Fatalf("permissions expected to be empty")
@@ -292,7 +488,10 @@ func TestGraph7(t *testing.T) {
 func TestGraph8(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
 	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name)
 	oa1, _ := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
@@ -300,7 +499,7 @@ func TestGraph8(t *testing.T) {
 
 	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("*"))
 
-	decider, _ := NewPReviewDecider(g, rwe)
+	decider := NewPReviewDecider(g, rwe)
 
 	l := decider.List(u1.Name, "", o1.Name)
 	if !l.Contains(operations.AdminOps().ToSlice()...) {
@@ -315,7 +514,10 @@ func TestGraph8(t *testing.T) {
 func TestGraph9(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
 	ua2, _ := g.CreateNode("ua2", graph.UA, nil, pc1.Name)
 	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name)
@@ -325,7 +527,7 @@ func TestGraph9(t *testing.T) {
 	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("*"))
 	g.Associate(ua2.Name, oa1.Name, operations.NewOperationSet("read", "write"))
 
-	decider, _ := NewPReviewDecider(g, rwe)
+	decider := NewPReviewDecider(g, rwe)
 
 	l := decider.List(u1.Name, "", o1.Name)
 	if !l.Contains(operations.AdminOps().ToSlice()...) {
@@ -340,8 +542,14 @@ func TestGraph9(t *testing.T) {
 func TestGraph10(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
-	pc2, _ := g.CreatePolicyClass("pc2", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
+	pc2, err := g.CreatePolicyClass("pc2", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
 	ua2, _ := g.CreateNode("ua2", graph.UA, nil, pc2.Name)
 	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name, ua2.Name)
@@ -352,7 +560,7 @@ func TestGraph10(t *testing.T) {
 	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("*"))
 	g.Associate(ua2.Name, oa2.Name, operations.NewOperationSet("read", "write"))
 
-	decider, _ := NewPReviewDecider(g, rwe)
+	decider := NewPReviewDecider(g, rwe)
 
 	if !decider.List(u1.Name, "", o1.Name).Contains("read", "write") {
 		t.Fatalf("permissions expected to contain read and write")
@@ -362,8 +570,14 @@ func TestGraph10(t *testing.T) {
 func TestGraph11(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
-	pc2, _ := g.CreatePolicyClass("pc2", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
+	pc2, err := g.CreatePolicyClass("pc2", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
 	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name)
 	oa1, _ := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
@@ -372,7 +586,7 @@ func TestGraph11(t *testing.T) {
 
 	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("*"))
 
-	decider, _ := NewPReviewDecider(g, rwe)
+	decider := NewPReviewDecider(g, rwe)
 
 	if decider.List(u1.Name, "", o1.Name).Len() > 0 {
 		t.Fatalf("permissions expected to be empty")
@@ -382,7 +596,10 @@ func TestGraph11(t *testing.T) {
 func TestGraph12(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
 	ua2, _ := g.CreateNode("ua2", graph.UA, nil, pc1.Name)
 	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name, ua2.Name)
@@ -392,7 +609,7 @@ func TestGraph12(t *testing.T) {
 	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read"))
 	g.Associate(ua2.Name, oa1.Name, operations.NewOperationSet("write"))
 
-	decider, _ := NewPReviewDecider(g, rwe)
+	decider := NewPReviewDecider(g, rwe)
 
 	if !decider.List(u1.Name, "", o1.Name).Contains("read", "write") {
 		t.Fatalf("permissions expected to contain read and write")
@@ -402,7 +619,10 @@ func TestGraph12(t *testing.T) {
 func TestGraph13(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	ua2, _ := g.CreateNode("ua2", graph.UA, nil, pc1.Name)
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, ua2.Name)
 	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name)
@@ -413,7 +633,7 @@ func TestGraph13(t *testing.T) {
 	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("*"))
 	g.Associate(ua2.Name, oa2.Name, operations.NewOperationSet("read"))
 
-	decider, _ := NewPReviewDecider(g, rwe)
+	decider := NewPReviewDecider(g, rwe)
 
 	l := decider.List(u1.Name, "", o1.Name)
 	if !l.Contains(operations.AdminOps().ToSlice()...) {
@@ -428,8 +648,14 @@ func TestGraph13(t *testing.T) {
 func TestGraph14(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
-	pc2, _ := g.CreatePolicyClass("pc2", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
+	pc2, err := g.CreatePolicyClass("pc2", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
 	ua2, _ := g.CreateNode("ua2", graph.UA, nil, pc1.Name)
 	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name, ua2.Name)
@@ -439,7 +665,7 @@ func TestGraph14(t *testing.T) {
 	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("*"))
 	g.Associate(ua2.Name, oa1.Name, operations.NewOperationSet("*"))
 
-	decider, _ := NewPReviewDecider(g, rwe)
+	decider := NewPReviewDecider(g, rwe)
 
 	l := decider.List(u1.Name, "", o1.Name)
 	if !l.Contains(operations.AdminOps().ToSlice()...) {
@@ -454,7 +680,10 @@ func TestGraph14(t *testing.T) {
 func TestGraph15(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	ua2, _ := g.CreateNode("ua2", graph.UA, nil, pc1.Name)
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, ua2.Name)
 	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name)
@@ -465,7 +694,7 @@ func TestGraph15(t *testing.T) {
 	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("*"))
 	g.Associate(ua2.Name, oa2.Name, operations.NewOperationSet("read"))
 
-	decider, _ := NewPReviewDecider(g, rwe)
+	decider := NewPReviewDecider(g, rwe)
 
 	l := decider.List(u1.Name, "", o1.Name)
 	if !l.Contains(operations.AdminOps().ToSlice()...) {
@@ -480,7 +709,10 @@ func TestGraph15(t *testing.T) {
 func TestGraph16(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	ua2, _ := g.CreateNode("ua2", graph.UA, nil, pc1.Name)
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, ua2.Name)
 	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name)
@@ -490,7 +722,7 @@ func TestGraph16(t *testing.T) {
 	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read"))
 	g.Associate(ua2.Name, oa1.Name, operations.NewOperationSet("write"))
 
-	decider, _ := NewPReviewDecider(g, rwe)
+	decider := NewPReviewDecider(g, rwe)
 
 	if !decider.List(u1.Name, "", o1.Name).Contains("read", "write") {
 		t.Fatalf("permissions expected to contain read and write")
@@ -500,7 +732,10 @@ func TestGraph16(t *testing.T) {
 func TestGraph18(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
 	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name)
 	oa1, _ := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
@@ -509,7 +744,7 @@ func TestGraph18(t *testing.T) {
 
 	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read", "write"))
 
-	decider, _ := NewPReviewDecider(g, rwe)
+	decider := NewPReviewDecider(g, rwe)
 
 	if decider.List(u1.Name, "", o1.Name).Len() > 0 {
 		t.Fatalf("permissions expected to be empty")
@@ -519,7 +754,10 @@ func TestGraph18(t *testing.T) {
 func TestGraph19(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
 	ua2, _ := g.CreateNode("ua2", graph.UA, nil, pc1.Name)
 	u1, _ := g.CreateNode("u1", graph.U, nil, ua2.Name)
@@ -528,7 +766,7 @@ func TestGraph19(t *testing.T) {
 
 	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read"))
 
-	decider, _ := NewPReviewDecider(g, rwe)
+	decider := NewPReviewDecider(g, rwe)
 
 	if decider.List(u1.Name, "", o1.Name).Len() > 0 {
 		t.Fatalf("permissions expected to be empty")
@@ -538,8 +776,14 @@ func TestGraph19(t *testing.T) {
 func TestGraph20(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
-	pc2, _ := g.CreatePolicyClass("pc2", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
+	pc2, err := g.CreatePolicyClass("pc2", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
 	ua2, _ := g.CreateNode("ua2", graph.UA, nil, pc1.Name)
 	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name, ua2.Name)
@@ -550,7 +794,7 @@ func TestGraph20(t *testing.T) {
 	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read"))
 	g.Associate(ua2.Name, oa2.Name, operations.NewOperationSet("read", "write"))
 
-	decider, _ := NewPReviewDecider(g, rwe)
+	decider := NewPReviewDecider(g, rwe)
 
 	if !decider.List(u1.Name, "", o1.Name).Contains("read") {
 		t.Fatalf("permissions expected to contain read")
@@ -560,8 +804,14 @@ func TestGraph20(t *testing.T) {
 func TestGraph21(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
-	pc2, _ := g.CreatePolicyClass("pc2", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
+	pc2, err := g.CreatePolicyClass("pc2", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
 	ua2, _ := g.CreateNode("ua2", graph.UA, nil, pc1.Name)
 	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name, ua2.Name)
@@ -572,7 +822,7 @@ func TestGraph21(t *testing.T) {
 	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read"))
 	g.Associate(ua2.Name, oa2.Name, operations.NewOperationSet("write"))
 
-	decider, _ := NewPReviewDecider(g, rwe)
+	decider := NewPReviewDecider(g, rwe)
 
 	if decider.List(u1.Name, "", o1.Name).Len() > 0 {
 		t.Fatalf("permissions expected to be empty")
@@ -582,7 +832,10 @@ func TestGraph21(t *testing.T) {
 func TestGraph22(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	g.CreatePolicyClass("pc2", nil)
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
 	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name)
@@ -591,7 +844,7 @@ func TestGraph22(t *testing.T) {
 
 	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read", "write"))
 
-	decider, _ := NewPReviewDecider(g, rwe)
+	decider := NewPReviewDecider(g, rwe)
 
 	if !decider.List(u1.Name, "", o1.Name).Contains("read", "write") {
 		t.Fatalf("permissions expected to contain read and write")
@@ -601,7 +854,10 @@ func TestGraph22(t *testing.T) {
 func TestGraph23WithProhibition(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
 	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name)
 	oa3, _ := g.CreateNode("oa3", graph.OA, nil, pc1.Name)
@@ -618,15 +874,15 @@ func TestGraph23WithProhibition(t *testing.T) {
 	prohibition.AddContainer(oa2.Name, false)
 	prohibition.Intersection = true
 
-	prohibs.AddProhibition(prohibition.Build())
+	prohibs.Add(prohibition.Build())
 
 	prohibition = prohibitions.NewBuilder("deny2", u1.Name, operations.NewOperationSet("write"))
 	prohibition.Intersection = true
 	prohibition.AddContainer(oa3.Name, false)
 
-	prohibs.AddProhibition(prohibition.Build())
+	prohibs.Add(prohibition.Build())
 
-	decider, _ := NewPReviewDeciderWithProhibitions(g, prohibs, rwe)
+	decider := NewPReviewDeciderWithProhibitions(g, prohibs, rwe)
 	list := decider.List(u1.Name, "", o1.Name)
 
 	if list.Len() != 1 {
@@ -641,7 +897,10 @@ func TestGraph23WithProhibition(t *testing.T) {
 func TestGraph24WithProhibition(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
 	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name)
 	oa1, _ := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
@@ -656,9 +915,9 @@ func TestGraph24WithProhibition(t *testing.T) {
 	prohibition.AddContainer(oa1.Name, false)
 	prohibition.AddContainer(oa2.Name, true)
 	prohibition.Intersection = true
-	prohibs.AddProhibition(prohibition.Build())
+	prohibs.Add(prohibition.Build())
 
-	decider, _ := NewPReviewDeciderWithProhibitions(g, prohibs, rwe)
+	decider := NewPReviewDeciderWithProhibitions(g, prohibs, rwe)
 
 	if !decider.List(u1.Name, "", o1.Name).Contains("read") {
 		t.Fatalf("permissions expected to contain read")
@@ -672,7 +931,7 @@ func TestGraph24WithProhibition(t *testing.T) {
 
 	prohibition = prohibitions.NewBuilder("deny-process", "1234", operations.NewOperationSet("read"))
 	prohibition.AddContainer(oa1.Name, false)
-	prohibs.AddProhibition(prohibition.Build())
+	prohibs.Add(prohibition.Build())
 
 	if decider.List(u1.Name, "1234", o1.Name).Len() > 0 {
 		t.Fatalf("permissions expected to be empty")
@@ -682,7 +941,10 @@ func TestGraph24WithProhibition(t *testing.T) {
 func TestGraph25WithProhibition(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
 	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name)
 	oa1, _ := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
@@ -699,9 +961,9 @@ func TestGraph25WithProhibition(t *testing.T) {
 	prohibition.AddContainer(oa4.Name, true)
 	prohibition.AddContainer(oa1.Name, false)
 	prohibition.Intersection = true
-	prohibs.AddProhibition(prohibition.Build())
+	prohibs.Add(prohibition.Build())
 
-	decider, _ := NewPReviewDeciderWithProhibitions(g, prohibs, rwe)
+	decider := NewPReviewDeciderWithProhibitions(g, prohibs, rwe)
 
 	if !decider.List(u1.Name, "", o1.Name).Contains("read", "write") {
 		t.Fatalf("permissions expected to contain read and write")
@@ -715,7 +977,10 @@ func TestGraph25WithProhibition(t *testing.T) {
 func TestGraph25WithProhibition2(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
 	u1, _ := g.CreateNode("u1", graph.U, nil, ua1.Name)
 	oa1, _ := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
@@ -729,9 +994,9 @@ func TestGraph25WithProhibition2(t *testing.T) {
 	prohibition.AddContainer(oa1.Name, false)
 	prohibition.AddContainer(oa2.Name, false)
 	prohibition.Intersection = true
-	prohibs.AddProhibition(prohibition.Build())
+	prohibs.Add(prohibition.Build())
 
-	decider, _ := NewPReviewDeciderWithProhibitions(g, prohibs, rwe)
+	decider := NewPReviewDeciderWithProhibitions(g, prohibs, rwe)
 
 	if decider.List(u1.Name, "", o1.Name).Len() > 0 {
 		t.Fatalf("permissions expected to be empty")
@@ -741,7 +1006,10 @@ func TestGraph25WithProhibition2(t *testing.T) {
 func TestDeciderWithUA(t *testing.T) {
 	g := graph.NewMemGraph()
 
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	ua2, _ := g.CreateNode("ua2", graph.UA, nil, pc1.Name)
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, ua2.Name)
 	g.CreateNode("u1", graph.U, nil, ua1.Name)
@@ -753,7 +1021,7 @@ func TestDeciderWithUA(t *testing.T) {
 	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet("read"))
 	g.Associate(ua2.Name, oa1.Name, operations.NewOperationSet("write"))
 
-	decider, _ := NewPReviewDecider(g, rwe)
+	decider := NewPReviewDecider(g, rwe)
 
 	if !decider.List(ua1.Name, "", oa1.Name).Contains("read", "write") {
 		t.Fatalf("permissions expected to contain read and write")
@@ -783,30 +1051,30 @@ func TestProhibitionsAllCombinations(t *testing.T) {
 	prohibition.AddContainer("oa2", false)
 	prohibition.AddContainer("oa3", false)
 	prohibition.Intersection = true
-	prohibs.AddProhibition(prohibition.Build())
+	prohibs.Add(prohibition.Build())
 
 	prohibition = prohibitions.NewBuilder("p1", "u2", operations.NewOperationSet(operations.WRITE))
 	prohibition.AddContainer("oa1", false)
 	prohibition.AddContainer("oa2", false)
 	prohibition.AddContainer("oa3", false)
-	prohibs.AddProhibition(prohibition.Build())
+	prohibs.Add(prohibition.Build())
 
 	prohibition = prohibitions.NewBuilder("p1", "u3", operations.NewOperationSet(operations.WRITE))
 	prohibition.AddContainer("oa1", false)
 	prohibition.AddContainer("oa2", true)
 	prohibition.Intersection = true
-	prohibs.AddProhibition(prohibition.Build())
+	prohibs.Add(prohibition.Build())
 
 	prohibition = prohibitions.NewBuilder("p1", "u4", operations.NewOperationSet(operations.WRITE))
 	prohibition.AddContainer("oa1", false)
 	prohibition.AddContainer("oa2", true)
-	prohibs.AddProhibition(prohibition.Build())
+	prohibs.Add(prohibition.Build())
 
 	prohibition = prohibitions.NewBuilder("p1", "u4", operations.NewOperationSet(operations.WRITE))
 	prohibition.AddContainer("oa2", true)
-	prohibs.AddProhibition(prohibition.Build())
+	prohibs.Add(prohibition.Build())
 
-	decider, _ := NewPReviewDeciderWithProhibitions(g, prohibs, rwe)
+	decider := NewPReviewDeciderWithProhibitions(g, prohibs, rwe)
 
 	list := decider.List("u1", "", "o1")
 	if !list.Contains("read") && list.Contains("write") {
@@ -841,14 +1109,17 @@ func TestProhibitionsAllCombinations(t *testing.T) {
 
 func TestPermissions(t *testing.T) {
 	g := graph.NewMemGraph()
-	pc1, _ := g.CreatePolicyClass("pc1", nil)
+	pc1, err := g.CreatePolicyClass("pc1", nil)
+	if err != nil {
+		t.Fatalf("failed to create policy class: %s", err)
+	}
 	ua1, _ := g.CreateNode("ua1", graph.UA, nil, pc1.Name)
 	g.CreateNode("u1", graph.U, nil, ua1.Name)
 	oa1, _ := g.CreateNode("oa1", graph.OA, nil, pc1.Name)
 	g.CreateNode("o1", graph.O, nil, oa1.Name)
 
 	g.Associate(ua1.Name, oa1.Name, operations.NewOperationSet(operations.ALL_OPS))
-	decider, _ := NewPReviewDecider(g, rwe)
+	decider := NewPReviewDecider(g, rwe)
 	list := decider.List("u1", "", "o1")
 	if !list.Contains(operations.AdminOps().ToSlice()...) {
 		t.Fatalf("permissions expected to contain admin_ops")
@@ -894,7 +1165,7 @@ func TestPermissionInOnlyOnePC(t *testing.T) {
 
 	g.Associate("ua3", "oa1", operations.NewOperationSet("read"))
 
-	decider, _ := NewPReviewDecider(g, operations.NewOperationSet("read"))
+	decider := NewPReviewDecider(g, operations.NewOperationSet("read"))
 
 	if decider.List("u1", "", "o1").Len() > 0 {
 		t.Fatalf("permissions should be empty")
