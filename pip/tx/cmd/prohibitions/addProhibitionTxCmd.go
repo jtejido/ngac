@@ -1,4 +1,4 @@
-package cmd
+package prohibitions
 
 import (
     "github.com/jtejido/ngac/pip/prohibitions"

@@ -5,7 +5,6 @@ import (
 	"github.com/jtejido/ngac/internal/omap"
 	"github.com/jtejido/ngac/internal/set"
 	"github.com/jtejido/ngac/operations"
-	"sync"
 )
 
 const (
@@ -14,7 +13,6 @@ const (
 
 // This is an in-memory dag implementation.
 type MemGraph struct {
-	sync.RWMutex
 	nodes map[string]*Node // contains all nodes
 	from  map[string]map[string]Edge
 	to    map[string]map[string]Edge
@@ -31,7 +29,6 @@ func NewMemGraph() *MemGraph {
 }
 
 func (mg *MemGraph) addNode(n *Node) {
-	mg.Lock()
 	if _, exists := mg.nodes[n.Name]; exists {
 		panic(fmt.Sprintf("simple: node collision: %s", n.Name))
 	}
@@ -39,13 +36,11 @@ func (mg *MemGraph) addNode(n *Node) {
 	mg.nodes[n.Name] = n
 	mg.from[n.Name] = make(map[string]Edge)
 	mg.to[n.Name] = make(map[string]Edge)
-	mg.Unlock()
+
 }
 
 func (mg *MemGraph) node(name string) (n *Node) {
-	mg.RLock()
 	n, _ = mg.nodes[name]
-	mg.RUnlock()
 	return
 }
 
@@ -59,7 +54,6 @@ func (mg *MemGraph) setEdge(e Edge) error {
 		return fmt.Errorf("adding self edge")
 	}
 	var found1, found2 bool
-	mg.Lock()
 	_, found1 = mg.nodes[sid]
 	_, found2 = mg.nodes[tid]
 	if !found1 {
@@ -72,13 +66,12 @@ func (mg *MemGraph) setEdge(e Edge) error {
 
 	mg.from[sid][tid] = e
 	mg.to[tid][sid] = e
-	mg.Unlock()
+
 	return nil
 }
 
 func (mg *MemGraph) removeNode(name string) {
 	var found bool
-	mg.Lock()
 	_, found = mg.nodes[name]
 	if !found {
 		return
@@ -95,12 +88,11 @@ func (mg *MemGraph) removeNode(name string) {
 		delete(mg.from[to], name)
 	}
 	delete(mg.to, name)
-	mg.Unlock()
+
 }
 
 func (mg *MemGraph) incomingEdgesOf(name string) []Edge {
 	var edges []Edge
-	mg.RLock()
 	if _, ok := mg.to[name]; !ok {
 		return []Edge{}
 	}
@@ -111,13 +103,12 @@ func (mg *MemGraph) incomingEdgesOf(name string) []Edge {
 	if len(edges) == 0 {
 		return []Edge{}
 	}
-	mg.RUnlock()
+
 	return edges
 }
 
 func (mg *MemGraph) outgoingEdgesOf(name string) []Edge {
 	var edges []Edge
-	mg.RLock()
 	if _, ok := mg.from[name]; !ok {
 		return []Edge{}
 	}
@@ -129,20 +120,18 @@ func (mg *MemGraph) outgoingEdgesOf(name string) []Edge {
 	if len(edges) == 0 {
 		return []Edge{}
 	}
-	mg.RUnlock()
+
 	return edges
 }
 
 func (mg *MemGraph) hasEdgeFromTo(u, v string) bool {
 	var found bool
-	mg.RLock()
 	_, found = mg.from[u][v]
-	mg.RUnlock()
+
 	return found
 }
 
 func (mg *MemGraph) removeEdge(fid, tid string) error {
-	mg.Lock()
 	if _, ok := mg.nodes[fid]; !ok {
 		return fmt.Errorf("source vertex not in the graph.")
 	}
@@ -152,7 +141,7 @@ func (mg *MemGraph) removeEdge(fid, tid string) error {
 
 	delete(mg.from[fid], tid)
 	delete(mg.to[tid], fid)
-	mg.Unlock()
+
 	return nil
 }
 
@@ -189,6 +178,7 @@ func (mg *MemGraph) CreateNode(name string, t NodeType, properties PropertyMap, 
 	}
 
 	node := &Node{name, t, properties}
+
 	mg.addNode(node)
 
 	// assign the new node the to given parent nodes
@@ -201,7 +191,6 @@ func (mg *MemGraph) CreateNode(name string, t NodeType, properties PropertyMap, 
 			return nil, err
 		}
 	}
-
 	//return the Node
 	return node, nil
 }
@@ -278,25 +267,20 @@ func (mg *MemGraph) Search(t NodeType, properties PropertyMap) set.Set {
 	results := set.NewSet()
 	// iterate over the nodes to find ones that match the search parameters
 	for _, node := range mg.nodes {
-
-		// if the type parameter is not null and the current node type does not equal the type parameter, do not add
-		if t != ALL && node.Type != t {
+		if node.Type != t && t != ALL {
 			continue
 		}
 
-		add := true
-
+		match := true
 		for _, key := range properties.Keys() {
 			checkValue, _ := properties.Get(key)
 			foundValue, _ := node.Properties.Get(key)
-			// if the property provided in the search parameters is null or *, continue to the next property
-			if (!(checkValue == nil || checkValue.(string) == "*")) && (foundValue == nil || foundValue.(string) != checkValue.(string)) {
-				add = false
-				break
+			if checkValue != foundValue {
+				match = false
 			}
 		}
 
-		if add {
+		if match {
 			results.Add(node)
 		}
 	}
