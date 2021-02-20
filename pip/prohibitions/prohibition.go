@@ -92,3 +92,28 @@ func (b *Builder) AddContainer(container string, complement bool) {
 func (b *Builder) Build() *Prohibition {
     return NewProhibition(b.name, b.subject, b.containers, b.operations, b.Intersection)
 }
+
+type ContainerCondition struct {
+    name       string
+    complement bool
+}
+
+func NewContainerCondition(name string, complement bool) *ContainerCondition {
+    return &ContainerCondition{name, complement}
+}
+
+func (c *ContainerCondition) Name() string {
+    return c.name
+}
+
+func (c *ContainerCondition) IsComplement() bool {
+    return c.complement
+}
+
+func (c *ContainerCondition) Equals(o interface{}) bool {
+    if cc, ok := o.(*ContainerCondition); ok {
+        return c.Name() == cc.Name()
+    }
+
+    return false
+}

@@ -1,8 +1,8 @@
 package epp
 
 import (
+	"github.com/jtejido/ngac/context"
 	"github.com/jtejido/ngac/internal/set"
-	"github.com/jtejido/ngac/pdp/service"
 	"github.com/jtejido/ngac/pip/graph"
 	"github.com/jtejido/ngac/pip/obligations"
 )
@@ -20,17 +20,17 @@ const (
 type EventContext interface {
 	Event() string
 	Target() *graph.Node
-	UserCtx() service.Context
+	UserCtx() context.Context
 	MatchesPattern(*obligations.EventPattern, graph.Graph) bool
 }
 
 type eventContext struct {
-	userCtx service.Context
+	userCtx context.Context
 	event   string
 	target  *graph.Node
 }
 
-func NewEventContext(userCtx service.Context, event string, target *graph.Node) *eventContext {
+func NewEventContext(userCtx context.Context, event string, target *graph.Node) *eventContext {
 	return &eventContext{userCtx, event, target}
 }
 
@@ -42,7 +42,7 @@ func (ctx *eventContext) Target() *graph.Node {
 	return ctx.target
 }
 
-func (ctx *eventContext) UserCtx() service.Context {
+func (ctx *eventContext) UserCtx() context.Context {
 	return ctx.userCtx
 }
 
@@ -218,7 +218,8 @@ func (ctx *eventContext) nodesMatch(evrNode *obligations.EvrNode, node *graph.No
 		return false
 	}
 
-	for k, v := range evrNode.Properties {
+	for _, k := range evrNode.Properties.Keys() {
+		v, _ := evrNode.Properties.Get(k)
 		if val, ok := node.Properties.Get(k); ok {
 			if val.(string) != v {
 				return false
@@ -236,7 +237,7 @@ type AssignEvent struct {
 	ParentNode *graph.Node
 }
 
-func NewAssignEvent(userCtx service.Context, target, parentNode *graph.Node) *AssignEvent {
+func NewAssignEvent(userCtx context.Context, target, parentNode *graph.Node) *AssignEvent {
 	ans := new(AssignEvent)
 	ans.userCtx = userCtx
 	ans.event = ASSIGN_EVENT
@@ -250,7 +251,7 @@ type AssignToEvent struct {
 	ChildNode *graph.Node
 }
 
-func NewAssignToEvent(userCtx service.Context, target, childNode *graph.Node) *AssignToEvent {
+func NewAssignToEvent(userCtx context.Context, target, childNode *graph.Node) *AssignToEvent {
 	ans := new(AssignToEvent)
 	ans.userCtx = userCtx
 	ans.event = ASSIGN_TO_EVENT
@@ -264,7 +265,7 @@ type AssociationEvent struct {
 	Source, Target *graph.Node
 }
 
-func NewAssociationEvent(userCtx service.Context, source, target *graph.Node) *AssociationEvent {
+func NewAssociationEvent(userCtx context.Context, source, target *graph.Node) *AssociationEvent {
 	ans := new(AssociationEvent)
 	ans.userCtx = userCtx
 	ans.event = "association"
@@ -279,7 +280,7 @@ type CreateNodeEvent struct {
 	parents set.Set
 }
 
-func NewCreateNodeEvent(userCtx service.Context, deletedNode *graph.Node, initialParent string, additionalParents ...string) *CreateNodeEvent {
+func NewCreateNodeEvent(userCtx context.Context, deletedNode *graph.Node, initialParent string, additionalParents ...string) *CreateNodeEvent {
 	ans := new(CreateNodeEvent)
 	ans.userCtx = userCtx
 	ans.event = CREATE_NODE_EVENT
@@ -297,7 +298,7 @@ type DeassignEvent struct {
 	ParentNode *graph.Node
 }
 
-func NewDeassignEvent(userCtx service.Context, target, parentNode *graph.Node) *DeassignEvent {
+func NewDeassignEvent(userCtx context.Context, target, parentNode *graph.Node) *DeassignEvent {
 	ans := new(DeassignEvent)
 	ans.userCtx = userCtx
 	ans.event = DEASSIGN_EVENT
@@ -311,7 +312,7 @@ type DeassignFromEvent struct {
 	ChildNode *graph.Node
 }
 
-func NewDeassignFromEvent(userCtx service.Context, target, childNode *graph.Node) *DeassignFromEvent {
+func NewDeassignFromEvent(userCtx context.Context, target, childNode *graph.Node) *DeassignFromEvent {
 	ans := new(DeassignFromEvent)
 	ans.userCtx = userCtx
 	ans.event = DEASSIGN_FROM_EVENT
@@ -325,7 +326,7 @@ type DeleteAssociationEvent struct {
 	Source, Target *graph.Node
 }
 
-func NewDeleteAssociationEvent(userCtx service.Context, source, target *graph.Node) *DeleteAssociationEvent {
+func NewDeleteAssociationEvent(userCtx context.Context, source, target *graph.Node) *DeleteAssociationEvent {
 	ans := new(DeleteAssociationEvent)
 	ans.userCtx = userCtx
 	ans.event = "delete association"
@@ -340,7 +341,7 @@ type DeleteNodeEvent struct {
 	parents set.Set
 }
 
-func NewDeleteNodeEvent(userCtx service.Context, deletedNode *graph.Node, parents set.Set) *DeleteNodeEvent {
+func NewDeleteNodeEvent(userCtx context.Context, deletedNode *graph.Node, parents set.Set) *DeleteNodeEvent {
 	ans := new(DeleteNodeEvent)
 	ans.userCtx = userCtx
 	ans.event = "delete association"
@@ -353,7 +354,7 @@ type ObjectAccessEvent struct {
 	eventContext
 }
 
-func NewObjectAccessEvent(userCtx service.Context, event string, target *graph.Node) *ObjectAccessEvent {
+func NewObjectAccessEvent(userCtx context.Context, event string, target *graph.Node) *ObjectAccessEvent {
 	ans := new(ObjectAccessEvent)
 	ans.userCtx = userCtx
 	ans.event = event

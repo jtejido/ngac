@@ -1,5 +1,9 @@
 package obligations
 
+import (
+	"github.com/jtejido/ngac/pip/graph"
+)
+
 type Obligation struct {
 	User    string
 	Enabled bool
@@ -36,11 +40,11 @@ type EventPattern struct {
 type ResponsePattern struct {
 	Condition        *Condition
 	NegatedCondition *NegatedCondition
-	Actions          []*Action
+	Actions          []Action
 }
 
 func NewResponsePattern() *ResponsePattern {
-	return &ResponsePattern{Actions: make([]*Action, 0)}
+	return &ResponsePattern{Actions: make([]Action, 0)}
 }
 
 type Condition struct {
@@ -107,7 +111,7 @@ type Target struct {
 type EvrNode struct {
 	Name       string
 	Type       string
-	Properties map[string]string
+	Properties graph.PropertyMap
 	Function   *Function
 	Process    *EvrProcess
 }
@@ -118,7 +122,7 @@ func NewEvrNodeFromFunction(function *Function) *EvrNode {
 	}
 }
 
-func NewEvrNode(name, t string, properties map[string]string) *EvrNode {
+func NewEvrNode(name, t string, properties graph.PropertyMap) *EvrNode {
 	return &EvrNode{
 		Name:       name,
 		Type:       t,

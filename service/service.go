@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/jtejido/ngac/common"
+	"github.com/jtejido/ngac/context"
 	"github.com/jtejido/ngac/pap/policy"
 	"github.com/jtejido/ngac/pdp/audit"
 	"github.com/jtejido/ngac/pdp/decider"
@@ -13,7 +14,7 @@ import (
 type Service struct {
 	pap         common.FunctionalEntity
 	superPolicy *policy.SuperPolicy
-	UserCtx     Context
+	UserCtx     context.Context
 	decider     decider.Decider
 	auditor     audit.Auditor
 }

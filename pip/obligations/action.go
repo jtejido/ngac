@@ -1,13 +1,40 @@
 package obligations
 
-type Action struct {
-	Condition        *Condition
-	NegatedCondition *NegatedCondition
+type Action interface {
+	Condition() *Condition
+	SetCondition(condition *Condition)
+	NegatedCondition() *NegatedCondition
+	SetNegatedCondition(*NegatedCondition)
+}
+
+type action struct {
+	condition        *Condition
+	negatedCondition *NegatedCondition
+}
+
+func NewAction() *action {
+	return new(action)
+}
+
+func (a *action) Condition() *Condition {
+	return a.condition
+}
+
+func (a *action) SetCondition(c *Condition) {
+	a.condition = c
+}
+
+func (a *action) NegatedCondition() *NegatedCondition {
+	return a.negatedCondition
+}
+
+func (a *action) SetNegatedCondition(n *NegatedCondition) {
+	a.negatedCondition = n
 }
 
 // AssignAction.java
 type AssignAction struct {
-	Action
+	action
 	Assignments []*ActionAssignment
 }
 
@@ -23,7 +50,7 @@ type ActionAssignment struct {
 
 // CreateAction.java
 type CreateAction struct {
-	Action
+	action
 	CreateNodesList []*ActionCreateNode
 	Rules           []*Rule
 }
@@ -40,7 +67,7 @@ type ActionCreateNode struct {
 }
 
 type DeleteAction struct {
-	Action
+	action
 	Nodes               []*EvrNode
 	Assignments         *AssignAction
 	Associations        []*GrantAction
@@ -49,7 +76,7 @@ type DeleteAction struct {
 
 // DenyAction.java
 type DenyAction struct {
-	Action
+	action
 	Label      string
 	Subject    *EvrNode
 	Operations []string
@@ -82,7 +109,7 @@ func NewActionContainer(name, t string, properties map[string]string) *ActionCon
 }
 
 type FunctionAction struct {
-	Action
+	action
 	Function *Function
 }
 
@@ -93,7 +120,7 @@ func NewFunctionAction(function *Function) *FunctionAction {
 }
 
 type GrantAction struct {
-	Action
+	action
 	Subject    *EvrNode
 	Operations []string
 	Target     *EvrNode

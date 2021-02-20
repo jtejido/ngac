@@ -17,24 +17,24 @@ func NewObligationsAdmin(pip common.FunctionalEntity) *ObligationsAdmin {
 	return &ObligationsAdmin{pip.Obligations()}
 }
 
-func (oa *ObligationsAdmin) AddObligation(obligation *obligations.Obligation, enable bool) error {
-	return oa.obligations.AddObligation(obligation, enable)
+func (oa *ObligationsAdmin) Add(obligation *obligations.Obligation, enable bool) {
+	oa.obligations.Add(obligation, enable)
 }
 
-func (oa *ObligationsAdmin) GetObligation(label string) *obligations.Obligation {
-	return oa.obligations.GetObligation(label)
+func (oa *ObligationsAdmin) Get(label string) *obligations.Obligation {
+	return oa.obligations.Get(label)
 }
 
 func (oa *ObligationsAdmin) All() []*obligations.Obligation {
 	return oa.obligations.All()
 }
 
-func (oa *ObligationsAdmin) UpdateObligation(label string, obligation *obligations.Obligation) {
-	oa.obligations.UpdateObligation(label, obligation)
+func (oa *ObligationsAdmin) Update(label string, obligation *obligations.Obligation) {
+	oa.obligations.Update(label, obligation)
 }
 
-func (oa *ObligationsAdmin) RemoveObligation(label string) {
-	oa.obligations.RemoveObligation(label)
+func (oa *ObligationsAdmin) Remove(label string) {
+	oa.obligations.Remove(label)
 }
 
 func (oa *ObligationsAdmin) SetEnable(label string, enabled bool) {

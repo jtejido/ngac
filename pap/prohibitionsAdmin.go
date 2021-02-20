@@ -3,7 +3,6 @@ package pap
 import (
 	"fmt"
 	"github.com/jtejido/ngac/common"
-	"github.com/jtejido/ngac/internal/set"
 	"github.com/jtejido/ngac/pip/prohibitions"
 )
 
@@ -19,40 +18,40 @@ func NewProhibitionsAdmin(pip common.FunctionalEntity) *ProhibitionsAdmin {
 	return &ProhibitionsAdmin{pip.Prohibitions()}
 }
 
-func (pa *ProhibitionsAdmin) AddProhibition(prohibition *prohibitions.Prohibition) error {
+func (pa *ProhibitionsAdmin) Add(prohibition *prohibitions.Prohibition) {
 	name := prohibition.Name
 
 	//check that the prohibition name is not null or empty
 	if len(name) == 0 {
-		return fmt.Errorf("a null name was provided when creating a prohibition")
+		panic(fmt.Errorf("a null name was provided when creating a prohibition"))
 	}
 
 	//check the prohibitions doesn't already exist
-	for p := range pa.All().Iter() {
-		if p.(*prohibitions.Prohibition).Name == name {
-			return fmt.Errorf("a prohibition with the name %s already exists", name)
+	for _, p := range pa.All() {
+		if p.Name == name {
+			panic(fmt.Errorf("a prohibition with the name %s already exists", name))
 		}
 	}
 
-	return pa.prohibitions.AddProhibition(prohibition)
+	pa.prohibitions.Add(prohibition)
 }
 
-func (pa *ProhibitionsAdmin) All() set.Set {
+func (pa *ProhibitionsAdmin) All() []*prohibitions.Prohibition {
 	return pa.prohibitions.All()
 }
 
-func (pa *ProhibitionsAdmin) GetProhibition(prohibitionName string) (*prohibitions.Prohibition, error) {
-	return pa.prohibitions.GetProhibition(prohibitionName)
+func (pa *ProhibitionsAdmin) Get(prohibitionName string) *prohibitions.Prohibition {
+	return pa.prohibitions.Get(prohibitionName)
 }
 
-func (pa *ProhibitionsAdmin) ProhibitionsFor(subject string) set.Set {
+func (pa *ProhibitionsAdmin) ProhibitionsFor(subject string) []*prohibitions.Prohibition {
 	return pa.prohibitions.ProhibitionsFor(subject)
 }
 
-func (pa *ProhibitionsAdmin) UpdateProhibition(prohibitionName string, prohibition *prohibitions.Prohibition) error {
-	return pa.prohibitions.UpdateProhibition(prohibitionName, prohibition)
+func (pa *ProhibitionsAdmin) Update(prohibitionName string, prohibition *prohibitions.Prohibition) {
+	pa.prohibitions.Update(prohibitionName, prohibition)
 }
 
-func (pa *ProhibitionsAdmin) RemoveProhibition(prohibitionName string) {
-	pa.prohibitions.RemoveProhibition(prohibitionName)
+func (pa *ProhibitionsAdmin) Remove(prohibitionName string) {
+	pa.prohibitions.Remove(prohibitionName)
 }

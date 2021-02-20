@@ -12,7 +12,7 @@ type FunctionExecutor interface {
 	 * The name of the function
 	 * @return the name of the function.
 	 */
-	FunctionName() string
+	Name() string
 
 	/**
 	 * How many parameters are expected.

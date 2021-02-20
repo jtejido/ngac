@@ -96,7 +96,7 @@ func (nt NodeType) String() string {
 	case PC:
 		return "PC"
 	default:
-		return "*"
+		return "nil"
 	}
 }
 
