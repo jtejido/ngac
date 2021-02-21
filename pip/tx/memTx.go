@@ -35,6 +35,8 @@ func (mt *MemTx) RunTx(txRunner common.TxRunner) error {
 }
 
 func (mt *MemTx) Commit() (err error) {
+    mt.Lock()
+    defer mt.Unlock()
     // commit the graph
     if err = mt.txGraph.Commit(); err == nil {
         // commit the prohibitions

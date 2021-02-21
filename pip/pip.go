@@ -8,6 +8,8 @@ import (
     "github.com/jtejido/ngac/pip/tx"
 )
 
+var _ common.FunctionalEntity = &PIP{}
+
 type PIP struct {
     graph        graph.Graph
     prohibitions prohibitions.Prohibitions

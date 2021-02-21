@@ -53,13 +53,6 @@ func (g *Graph) CreatePolicyClass(name string, properties graph.PropertyMap) (*g
  * on the super object.  By default the super user will always have this permission. A configuration will be created
  * that grants the user permissions on the policy class' default UA and OA, which will allow the user to delegate admin
  * permissions to other users.
- *
- * @param name the name of the node to create.
- * @param type the type of the node.
- * @param properties properties to add to the node.
- * @param initialParent the name of the node to assign the new node to.
- * @param additionalParents 0 or more node names to assign the new node to.
- * @return the new node.
  */
 func (g *Graph) CreateNode(name string, t graph.NodeType, properties graph.PropertyMap, initialParent string, additionalParents ...string) (node *graph.Node, err error) {
     // check that the user can create the node in each of the parents
@@ -80,11 +73,6 @@ func (g *Graph) CreateNode(name string, t graph.NodeType, properties graph.Prope
 /**
  * Update the node in the database and in the in-memory graph.  If the name is null or empty it is ignored, likewise
  * for properties.
- *
- * @param name the name to give the node.
- * @param properties the properties of the node.
- * @throws PMException if the given node does not exist in the graph.
- * @throws PMAuthorizationException if the user is not authorized to update the node.
  */
 func (g *Graph) UpdateNode(name string, properties graph.PropertyMap) error {
     // check that the user can update the node
@@ -100,9 +88,6 @@ func (g *Graph) UpdateNode(name string, properties graph.PropertyMap) error {
  * Delete the node with the given name from the PAP.  First check that the current user
  * has the correct permissions to do so. Do this by checking that the user has the permission to deassign from each
  * of the node's parents, and that the user can delete the node.
- * @param name the name of the node to delete.
- * @throws PMException if there is an error accessing the graph through the PAP.
- * @throws PMAuthorizationException if the user is not authorized to delete the node.
  */
 func (g *Graph) RemoveNode(name string) {
     node, err := g.GraphAdmin().Node(name)
@@ -154,9 +139,6 @@ func (g *Graph) RemoveNode(name string) {
 /**
  * Check that a node with the given name exists. This method will return false if the user does not have access to
  * the node.
- * @param name the name of the node to check for.
- * @return true if a node with the given name exists, false otherwise.
- * @throws PMException if there is an error checking if the node exists in the graph through the PAP.
  */
 func (g *Graph) Exists(name string) bool {
     exists := g.GraphAdmin().Exists(name)
@@ -173,8 +155,6 @@ func (g *Graph) Exists(name string) bool {
 /**
  * Retrieve the list of all nodes in the graph.  Go to the database to do this, since it is more likely to have
  * all of the node information.
- * @return the set of all nodes in the graph.
- * @throws PMException if there is an error getting the nodes from the PAP.
  */
 func (g *Graph) Nodes() set.Set {
     nodes := set.NewSet()
@@ -187,8 +167,6 @@ func (g *Graph) Nodes() set.Set {
 
 /**
  * Get the set of policy classes. This can be performed by the in-memory graph.
- * @return the set of names for the policy classes in the graph.
- * @throws PMException if there is an error getting the policy classes from the PAP.
  */
 func (g *Graph) PolicyClasses() set.Set {
     return g.GraphAdmin().PolicyClasses()
@@ -201,12 +179,6 @@ func (g *Graph) PolicyClassDefault(pc string, t graph.NodeType) string {
 /**
  * Get the children of the node from the graph.  Get the children from the database to ensure all node information
  * is present.  Before returning the set of nodes, filter out any nodes that the user has no permissions on.
- *
- * @param name the name of the node to get the children of.
- * @return a set of Node objects, representing the children of the target node.
- * @throws PMException if the target node does not exist.
- * @throws PMException if there is an error getting the children from the PAP.
-
  */
 func (g *Graph) Children(name string) set.Set {
     if !g.Exists(name) {
@@ -221,10 +193,6 @@ func (g *Graph) Children(name string) set.Set {
 /**
  * Get the parents of the node from the graph.  Before returning the set of nodes, filter out any nodes that the user
  * has no permissions on.
- * @param name the name of the node to get the parents of.
- * @return a set of Node objects, representing the parents of the target node.
- * @throws PMException if the target node does not exist.
- * @throws PMException if there is an error getting the parents from the PAP.
  */
 func (g *Graph) Parents(name string) set.Set {
     if !g.Exists(name) {
@@ -239,13 +207,6 @@ func (g *Graph) Parents(name string) set.Set {
 /**
  * Create the assignment in both the db and in-memory graphs. First check that the user is allowed to assign the child,
  * and allowed to assign something to the parent.
- * @param child the name of the child node.
- * @param parent the name of the parent node.
- * @throws IllegalArgumentException if the child name is null.
- * @throws IllegalArgumentException if the parent name is null.
- * @throws PMException if the child or parent node does not exist.
- * @throws PMException if the assignment is invalid.
- * @throws PMAuthorizationException if the current user does not have permission to create the assignment.
  */
 func (g *Graph) Assign(child, parent string) (err error) {
     // check that the user can make the assignment
@@ -276,12 +237,6 @@ func (g *Graph) Assign(child, parent string) (err error) {
 /**
  * Create the assignment in both the db and in-memory graphs. First check that the user is allowed to assign the child,
  * and allowed to assign something to the parent.
- * @param child the name of the child of the assignment to delete.
- * @param parent the name of the parent of the assignment to delete.
- * @throws IllegalArgumentException if the child name is null.
- * @throws IllegalArgumentException if the parent name is null.
- * @throws PMException if the child or parent node does not exist.
- * @throws PMAuthorizationException if the current user does not have permission to delete the assignment.
  */
 func (g *Graph) Deassign(child, parent string) (err error) {
     // check the user can delete the assignment
@@ -326,16 +281,6 @@ func (g *Graph) IsAssigned(child, parent string) bool {
  * Create an association between the user attribute and the target node with the given operations. First, check that
  * the user has the permissions to associate the user attribute and target nodes.  If an association already exists
  * between the two nodes than update the existing association with the provided operations (overwrite).
- *
- * @param ua the name of the user attribute.
- * @param target the name of the target node.
- * @param operations a Set of operations to add to the Association.
- * @throws IllegalArgumentException if the user attribute is null.
- * @throws IllegalArgumentException if the target is null.
- * @throws PMException if the user attribute node does not exist.
- * @throws PMException if the target node does not exist.
- * @throws PMException if the association is invalid.
- * @throws PMAuthorizationException if the current user does not have permission to create the association.
  */
 func (g *Graph) Associate(ua, target string, ops operations.OperationSet) (err error) {
     // check that this user can create the association
@@ -362,14 +307,6 @@ func (g *Graph) Associate(ua, target string, ops operations.OperationSet) (err e
 /**
  * Delete the association between the user attribute and the target node.  First, check that the user has the
  * permission to delete the association.
- *
- * @param ua The name of the user attribute.
- * @param target The name of the target node.
- * @throws IllegalArgumentException If the user attribute is null.
- * @throws IllegalArgumentException If the target node is null.
- * @throws PMException If the user attribute node does not exist.
- * @throws PMException If the target node does not exist.
- * @throws PMAuthorizationException If the current user does not have permission to delete the association.
  */
 func (g *Graph) Dissociate(ua, target string) (err error) {
     // check that the user can delete the association
@@ -394,11 +331,6 @@ func (g *Graph) Dissociate(ua, target string) (err error) {
 /**
  * Get the associations the given node is the source node of. First, check if the user is allowed to retrieve this
  * information.
- *
- * @param source The name of the source node.
- * @return a map of the target and operations for each association the given node is the source of.
- * @throws PMException If the given node does not exist.
- * @throws PMAuthorizationException If the current user does not have permission to get hte node's associations.
  */
 func (g *Graph) SourceAssociations(source string) (sourceAssociations map[string]operations.OperationSet, err error) {
     // check that this user can get the associations of the source node
@@ -418,11 +350,6 @@ func (g *Graph) SourceAssociations(source string) (sourceAssociations map[string
 /**
  * Get the associations the given node is the target node of. First, check if the user is allowed to retrieve this
  * information.
- *
- * @param target The name of the source node.
- * @return a map of the source name and operations for each association the given node is the target of.
- * @throws PMException If the given node does not exist.
- * @throws PMAuthorizationException If the current user does not have permission to get hte node's associations.
  */
 func (g *Graph) TargetAssociations(target string) (targetAssociations map[string]operations.OperationSet, err error) {
     // check that this user can get the associations of the target node
@@ -442,12 +369,6 @@ func (g *Graph) TargetAssociations(target string) (targetAssociations map[string
 /**
  * Search the NGAC graph for nodes that match the given parameters. A node must match all non null parameters to be
  * returned in the search.
- *
- * @param type The type of the nodes to search for.
- * @param properties The properties of the nodes to search for.
- * @return a Response with the nodes that match the given search criteria.
- * @throws PMException If the PAP encounters an error with the graph.
- * @throws PMAuthorizationException If the current user does not have permission to get hte node's associations.
  */
 func (g *Graph) Search(t graph.NodeType, properties graph.PropertyMap) set.Set {
     search := g.GraphAdmin().Search(t, properties)
@@ -458,11 +379,6 @@ func (g *Graph) Search(t graph.NodeType, properties graph.PropertyMap) set.Set {
 
 /**
  * Retrieve the node from the graph with the given name.
- *
- * @param name the name of the node to get.
- * @return the Node retrieved from the graph with the given name.
- * @throws PMException If the node does not exist in the graph.
- * @throws PMAuthorizationException if the current user is not authorized to access this node.
  */
 func (g *Graph) Node(name string) (node *graph.Node, err error) {
     // get node
@@ -491,8 +407,6 @@ func (g *Graph) NodeFromDetails(t graph.NodeType, properties graph.PropertyMap) 
 
 /**
  * Deletes all nodes in the graph
- *
- * @throws PMException if something goes wrong in the deletion process
  */
 func (g *Graph) Reset(userCtx context.Context) (err error) {
     if err = g.guard.CheckReset(userCtx); err != nil {
