@@ -17,12 +17,12 @@ func (f *ToPropertiesExecutor) NumParams() int {
 }
 func (f *ToPropertiesExecutor) Exec(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations,
     eventCtx EventContext, function *obligations.Function, functionEvaluator *FunctionEvaluator) (interface{}, error) {
-    props := make(map[string]string)
+    props := graph.NewPropertyMap()
     for _, arg := range function.Args {
         value := arg.Value
         tokens := strings.Split(value, "=")
         if len(tokens) == 2 {
-            props[tokens[0]] = tokens[1]
+            props.Add(tokens[0], tokens[1])
         }
     }
 

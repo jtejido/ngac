@@ -1,5 +1,9 @@
 package obligations
 
+import (
+	"github.com/jtejido/ngac/pip/graph"
+)
+
 type Action interface {
 	Condition() *Condition
 	SetCondition(condition *Condition)
@@ -90,7 +94,7 @@ type ActionTarget struct {
 
 type ActionContainer struct {
 	Name, Type string
-	Properties map[string]string
+	Properties graph.PropertyMap
 	Function   *Function
 	Complement bool
 }
@@ -99,7 +103,7 @@ func NewActionContainerFromFunction(function *Function) *ActionContainer {
 	return &ActionContainer{Function: function}
 }
 
-func NewActionContainer(name, t string, properties map[string]string) *ActionContainer {
+func NewActionContainer(name, t string, properties graph.PropertyMap) *ActionContainer {
 	return &ActionContainer{
 		Name:       name,
 		Type:       t,

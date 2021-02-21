@@ -14,8 +14,12 @@ type PAP struct {
 	obligationsAdmin  *ObligationsAdmin
 }
 
-func NewPAP(p common.FunctionalEntity) *PAP {
-	return &PAP{NewGraphAdmin(p), NewProhibitionsAdmin(p), NewObligationsAdmin(p)}
+func NewPAP(p common.FunctionalEntity) (*PAP, error) {
+	ga, err := NewGraphAdmin(p)
+	if err != nil {
+		return nil, err
+	}
+	return &PAP{ga, NewProhibitionsAdmin(p), NewObligationsAdmin(p)}, nil
 }
 
 func (pap *PAP) Graph() graph.Graph {

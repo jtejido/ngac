@@ -290,7 +290,7 @@ func (mg *MemGraph) Search(t NodeType, properties PropertyMap) set.Set {
 
 func (mg *MemGraph) Children(name string) set.Set {
 	if !mg.Exists(name) {
-		return set.NewSet()
+		panic(fmt.Errorf(node_not_found_msg, name))
 	}
 
 	children := set.NewSet()
@@ -307,7 +307,7 @@ func (mg *MemGraph) Children(name string) set.Set {
 
 func (mg *MemGraph) Parents(name string) set.Set {
 	if !mg.Exists(name) {
-		return set.NewSet()
+		panic(fmt.Errorf(node_not_found_msg, name))
 	}
 
 	parents := set.NewSet()

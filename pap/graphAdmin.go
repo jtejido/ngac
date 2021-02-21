@@ -24,10 +24,13 @@ type GraphAdmin struct {
 
 type pair = graph.PropertyPair
 
-func NewGraphAdmin(pip common.FunctionalEntity) *GraphAdmin {
+func NewGraphAdmin(pip common.FunctionalEntity) (*GraphAdmin, error) {
 	ans := &GraphAdmin{pip, pip.Graph(), policy.NewSuperPolicy()}
-	ans.superPolicy.Configure(ans.graph)
-	return ans
+	err := ans.superPolicy.Configure(ans.graph)
+	if err != nil {
+		return nil, err
+	}
+	return ans, nil
 }
 
 func (ga *GraphAdmin) PolicyClassDefault(pcName string, t graph.NodeType) string {
@@ -92,8 +95,11 @@ func (ga *GraphAdmin) CreatePolicyClass(name string, properties graph.PropertyMa
 		}
 		// create an OA that will represent the pc
 		_, err = g.CreateNode(rep, graph.OA, graph.ToProperties(pair{"pc", name}), ga.superPolicy.SuperObjectAttribute().Name)
+		if err != nil {
+			return err
+		}
 
-		return err
+		return nil
 	}); err != nil {
 		return nil, err
 	}

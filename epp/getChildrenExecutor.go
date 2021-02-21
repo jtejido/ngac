@@ -23,5 +23,5 @@ func (f *GetChildrenExecutor) Exec(g graph.Graph, p prohibitions.Prohibitions, o
     }
 
     children := g.Children(node.(*graph.Node).Name)
-    return children.ToSlice(), nil
+    return children, nil
 }
