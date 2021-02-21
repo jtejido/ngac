@@ -8,4 +8,4 @@ This is a Golang port of NIST's reference core implementation from Policy Machin
 
 **Find their documentation here:**
 
-[https://pm-master.github.io/pm-master/policy-machine/](https://pm-master.github.io/pm-master/policy-machine/)
+[https://pm-master.github.io/pm-master/policy-machine-core/](https://pm-master.github.io/pm-master/policy-machine-core/)
