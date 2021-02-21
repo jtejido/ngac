@@ -5,6 +5,10 @@ import (
 	"github.com/jtejido/ngac/common"
 	"github.com/jtejido/ngac/context"
 	"github.com/jtejido/ngac/decider"
+	"github.com/jtejido/ngac/epp"
+	"github.com/jtejido/ngac/pip/graph"
+	"github.com/jtejido/ngac/pip/obligations"
+	"github.com/jtejido/ngac/pip/prohibitions"
 	"github.com/jtejido/ngac/pip/tx"
 )
 
@@ -22,7 +26,7 @@ func NewPDP(pap common.FunctionalEntity, eppOptions *epp.EPPOptions, decider dec
 	// create PDP
 	pdp := newPDP(pap, decider, auditor)
 	// create the EPP
-	pdp.epp = epp.NewEPP(pap, pdp, eppOptions)
+	pdp.epp = NewEPP(pap, pdp, eppOptions)
 	pdp.decider = decider
 	pdp.auditor = auditor
 
@@ -59,21 +63,21 @@ func newWithUser(userCtx context.Context, p common.FunctionalEntity, e *EPP, d d
 }
 
 func (wu *WithUser) Graph() graph.Graph {
-	return service.NewGraphService(wu.userCtx, wu.pap, wu.epp, wu.decider, wu.auditor)
+	return NewGraphService(wu.userCtx, wu.pap, wu.epp, wu.decider, wu.auditor)
 }
 
-func (wu *WithUser) Prohibitions() prohibition.Prohibition {
-	return service.NewProhibitionsService(wu.userCtx, wu.pap, wu.epp, wu.decider, wu.auditor)
+func (wu *WithUser) Prohibitions() prohibitions.Prohibitions {
+	return NewProhibitionsService(wu.userCtx, wu.pap, wu.epp, wu.decider, wu.auditor)
 }
 
-func (wu *WithUser) Obligations() obligations.Obligation {
-	return service.NewObligationsService(wu.userCtx, wu.pap, wu.epp, wu.decider, wu.auditor)
+func (wu *WithUser) Obligations() obligations.Obligations {
+	return NewObligationsService(wu.userCtx, wu.pap, wu.epp, wu.decider, wu.auditor)
 }
 
 func (wu *WithUser) RunTx(txRunner common.TxRunner) error {
-	graphService := service.NewGraphService(wu.userCtx, wu.pap, wu.epp, wu.decider, wu.auditor)
-	prohibitionsService := service.NewProhibitionsService(wu.userCtx, wu.pap, wu.epp, wu.decider, wu.auditor)
-	obligationsService := service.NewObligationsService(wu.userCtx, wu.pap, wu.epp, wu.decider, wu.auditor)
+	graphService := NewGraphService(wu.userCtx, wu.pap, wu.epp, wu.decider, wu.auditor)
+	prohibitionsService := NewProhibitionsService(wu.userCtx, wu.pap, wu.epp, wu.decider, wu.auditor)
+	obligationsService := NewObligationsService(wu.userCtx, wu.pap, wu.epp, wu.decider, wu.auditor)
 	tx := tx.NewMemTx(graphService, prohibitionsService, obligationsService)
 	return tx.RunTx(txRunner)
 }

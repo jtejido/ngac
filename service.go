@@ -1,22 +1,21 @@
-package service
+package ngac
 
 import (
+	"github.com/jtejido/ngac/audit"
 	"github.com/jtejido/ngac/common"
 	"github.com/jtejido/ngac/context"
-	"github.com/jtejido/ngac/pap/policy"
-	"github.com/jtejido/ngac/pdp/audit"
-	"github.com/jtejido/ngac/pdp/decider"
+	"github.com/jtejido/ngac/decider"
 	"github.com/jtejido/ngac/pip/graph"
 	"github.com/jtejido/ngac/pip/obligations"
 	"github.com/jtejido/ngac/pip/prohibitions"
 )
 
 type Service struct {
-	pap         common.FunctionalEntity
-	superPolicy *policy.SuperPolicy
-	UserCtx     context.Context
-	decider     decider.Decider
-	auditor     audit.Auditor
+	pap     common.FunctionalEntity
+	UserCtx context.Context
+	epp     *EPP
+	decider decider.Decider
+	auditor audit.Auditor
 }
 
 func (s *Service) GraphAdmin() graph.Graph {
@@ -29,7 +28,6 @@ func (s *Service) ProhibitionsAdmin() prohibitions.Prohibitions {
 
 func (s *Service) ObligationsAdmin() obligations.Obligations {
 	return s.pap.Obligations()
-
 }
 
 func (s *Service) Decider() decider.Decider {

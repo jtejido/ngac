@@ -127,6 +127,22 @@ func NewNode() *Node {
 	return &Node{Properties: NewPropertyMap()}
 }
 
+func NewNodeFromNode(node *Node) *Node {
+	ans := &Node{Name: node.Name, Type: node.Type, Properties: node.Properties}
+	if node.Properties == nil {
+		ans.Properties = NewPropertyMap()
+	}
+	return ans
+}
+
+func NewNodeWithFields(Name string, Type NodeType, Prop PropertyMap) *Node {
+	return &Node{Name, Type, Prop}
+}
+
+func NewNodeWithoutProps(Name string, Type NodeType) *Node {
+	return &Node{Name, Type, nil}
+}
+
 func (n *Node) Equals(i interface{}) bool {
 	if v, ok := i.(*Node); ok {
 		return n.Name == v.Name

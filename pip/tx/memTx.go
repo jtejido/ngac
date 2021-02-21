@@ -19,6 +19,7 @@ func NewMemTx(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligati
     ans.graph = g
     ans.prohibitions = p
     ans.obligations = o
+    // should be clone to revert back to its original state
     ans.txGraph = NewTxGraph(g)
     ans.txProhibitions = NewTxProhibitions(p)
     ans.txObligations = NewTxObligations(o)
@@ -26,25 +27,28 @@ func NewMemTx(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligati
 }
 
 func (mt *MemTx) RunTx(txRunner common.TxRunner) error {
-    if err := txRunner.Run(txGraph, txProhibitions, txObligations); err != nil {
+    if err := txRunner(mt.txGraph, mt.txProhibitions, mt.txObligations); err != nil {
         mt.Rollback()
         return err
     }
-    mt.Commit()
-    return nil
+    return mt.Commit()
 }
 
-func (mt *MemTx) Commit() error {
-    ans.Lock()
-    defer ans.Unlock()
+func (mt *MemTx) Commit() (err error) {
+    mt.Lock()
+    defer mt.Unlock()
     // commit the graph
-    txGraph.Commit()
+    if err = mt.txGraph.Commit(); err == nil {
+        // commit the prohibitions
+        if err = mt.txProhibitions.Commit(); err == nil {
+            // commit the obligations
+            if err = mt.txObligations.Commit(); err == nil {
+                return
+            }
+        }
+    }
 
-    // commit the prohibitions
-    txProhibitions.Commit()
-
-    // commit the obligations
-    txObligations.Commit()
+    return
 }
 
 func (mt *MemTx) Rollback() {

@@ -8,7 +8,6 @@ import (
 // Interface for maintaining an NGAC graph.
 // Every Dao for a graph implementation should follow this
 type Graph interface {
-
 	/**
 	 * Create a policy class in the graph.
 	 */

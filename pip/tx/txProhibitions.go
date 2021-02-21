@@ -1,50 +1,43 @@
 package tx
 
 import (
-    "github.com/jtejido/ngac/pip/cmd"
     "github.com/jtejido/ngac/pip/prohibitions"
     "sync"
 )
 
-type Prohibitions interface {
-    Add(*Prohibition)
-    All() []*Prohibition
-    Get(string) *Prohibition
-    ProhibitionsFor(string) []*Prohibition
-    Update(string, *Prohibition)
-    Remove(string)
-}
-
 type TxProhibitions struct {
     sync.RWMutex
     targetProhibitions prohibitions.Prohibitions
-    prohibitions       []prohibitions.Prohibitions
-    cmds               []cmd.TxCmd
+    prohibitions       []*prohibitions.Prohibition
+    cmds               []Committer
 }
 
 func NewTxProhibitions(p prohibitions.Prohibitions) *TxProhibitions {
-    return &TxObligations{targetProhibitions: p, cmds: make([]cmd.TxCmd, 0), prohibitions: make(map[string]prohibitions.Prohibitions)}
+    return &TxProhibitions{targetProhibitions: p, cmds: make([]Committer, 0), prohibitions: make([]*prohibitions.Prohibition, 0)}
 }
 
 func (tp *TxProhibitions) Add(prohibition *prohibitions.Prohibition) {
-    sync.Lock()
-    tp.cmds = append(tp.cmds, cmd.NewAddProhibitionTxCmd(tp.targetProhibitions, prohibition))
+    tp.Lock()
+    tp.cmds = append(tp.cmds, func() error {
+        tp.targetProhibitions.Add(prohibition)
+        return nil
+    })
     tp.prohibitions = append(tp.prohibitions, prohibition)
-    sync.Unlock()
+    tp.Unlock()
 }
 
 func (tp *TxProhibitions) All() []*prohibitions.Prohibition {
-    sync.RLock()
+    tp.RLock()
     all := tp.targetProhibitions.All()
     for _, prohibition := range tp.prohibitions {
         all = append(all, prohibition.Clone())
     }
-    sync.RUnlock()
+    tp.RUnlock()
     return all
 }
 
 func (tp *TxProhibitions) Get(prohibitionName string) *prohibitions.Prohibition {
-    sync.RLock()
+    tp.RLock()
     prohibition := tp.targetProhibitions.Get(prohibitionName)
     if prohibition == nil {
         for _, p := range tp.prohibitions {
@@ -53,36 +46,42 @@ func (tp *TxProhibitions) Get(prohibitionName string) *prohibitions.Prohibition 
             }
         }
     }
-    sync.RUnlock()
+    tp.RUnlock()
     return prohibition
 }
 
 func (tp *TxProhibitions) ProhibitionsFor(subject string) []*prohibitions.Prohibition {
-    sync.RLock()
+    tp.RLock()
     ret := tp.targetProhibitions.ProhibitionsFor(subject)
-    for _, p := range prohibitions {
+    for _, p := range tp.prohibitions {
         if p.Subject == subject {
             ret = append(ret, p)
         }
     }
-    sync.RUnlock()
+    tp.RUnlock()
     return ret
 }
 
 func (tp *TxProhibitions) Update(prohibitionName string, prohibition *prohibitions.Prohibition) {
-    sync.Lock()
-    tp.cmds = append(tp.cmds, cmd.NewUpdateProhibitionTxCmd(tp.targetProhibitions, prohibitionName, prohibition))
-    for _, p := range tp.prohibitions {
-        if p.Name == prohibitionName {
-            p = prohibition
+    tp.Lock()
+    tp.cmds = append(tp.cmds, func() error {
+        tp.targetProhibitions.Update(prohibitionName, prohibition)
+        return nil
+    })
+    for i := 0; i < len(tp.prohibitions); i++ {
+        if tp.prohibitions[i].Name == prohibitionName {
+            tp.prohibitions[i] = prohibition
         }
     }
-    sync.Unlock()
+    tp.Unlock()
 }
 
 func (tp *TxProhibitions) Remove(prohibitionName string) {
-    sync.Lock()
-    tp.cmds = append(tp.cmds, cmd.NewDeleteProhibitionTxCmd(tp.targetProhibitions, prohibitionName))
+    tp.Lock()
+    tp.cmds = append(tp.cmds, func() error {
+        tp.targetProhibitions.Remove(prohibitionName)
+        return nil
+    })
     var idx int
     for i, p := range tp.prohibitions {
         if p.Name == prohibitionName {
@@ -91,15 +90,16 @@ func (tp *TxProhibitions) Remove(prohibitionName string) {
     }
 
     tp.prohibitions = append(tp.prohibitions[:idx], tp.prohibitions[idx+1:]...)
-    sync.Unlock()
+    tp.Unlock()
 }
 
-func (tp *TxProhibitions) Commit() error {
-    sync.RLock()
-    defer sync.RUnlock()
+func (tp *TxProhibitions) Commit() (err error) {
+    tp.RLock()
+    defer tp.RUnlock()
     for _, txCmd := range tp.cmds {
-        if err = txCmd.Commit(); err != nil {
+        if err = txCmd(); err != nil {
             return
         }
     }
+    return nil
 }

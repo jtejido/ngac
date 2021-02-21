@@ -1,7 +1,6 @@
 package tx
 
 import (
-    "github.com/jtejido/ngac/pip/cmd"
     "github.com/jtejido/ngac/pip/obligations"
     "sync"
 )
@@ -9,84 +8,98 @@ import (
 type TxObligations struct {
     sync.RWMutex
     targetObligations obligations.Obligations
-    cmds              []cmd.TxCmd
-    txObligations     map[string]obligations.Obligations
+    cmds              []Committer
+    txObligations     map[string]*obligations.Obligation
 }
 
 func NewTxObligations(o obligations.Obligations) *TxObligations {
-    return &TxObligations{targetObligations: o, cmds: make([]cmd.TxCmd, 0), txObligations: make(map[string]obligations.Obligations)}
+    return &TxObligations{targetObligations: o, cmds: make([]Committer, 0), txObligations: make(map[string]*obligations.Obligation)}
 }
 
 func (to *TxObligations) Add(o *obligations.Obligation, enable bool) {
-    sync.Lock()
+    to.Lock()
 
-    if to.targetObligations.Get(obligation.Label) != nil {
-        panic("obligation already exists with label " + obligation.Label)
+    if to.targetObligations.Get(o.Label) != nil {
+        panic("obligation already exists with label " + o.Label)
     }
 
-    to.cmds = append(to.cmds, cmd.NewAddObligationTxCmd(to.targetObligations, o, enable))
-    to.txObligations[obligation.Label] = o
-    sync.Unlock()
+    to.cmds = append(to.cmds, func() error {
+        to.targetObligations.Add(o, enable)
+        return nil
+    })
+    to.txObligations[o.Label] = o
+    to.Unlock()
 }
 
 func (to *TxObligations) Get(label string) *obligations.Obligation {
-    sync.RLock()
+    to.RLock()
     obligation := to.targetObligations.Get(label)
     if obligation == nil {
         obligation = to.txObligations[label]
     }
-    sync.RUnlock()
+    to.RUnlock()
     return obligation
 }
 
 func (to *TxObligations) All() []*obligations.Obligation {
-    sync.RLock()
+    to.RLock()
     all := append([]*obligations.Obligation{}, to.targetObligations.All()...)
     for _, v := range to.txObligations {
         all = append(all, v)
     }
-    sync.RUnlock()
+    to.RUnlock()
     return all
 }
 
 func (to *TxObligations) Update(label string, o *obligations.Obligation) {
-    sync.Lock()
-    to.cmds = append(to.cmds, cmd.NewUpdateObligationTxCmd(to.targetObligations, label, o))
+    to.Lock()
+    to.cmds = append(to.cmds, func() error {
+        to.targetObligations.Update(label, o)
+        return nil
+    })
     to.txObligations[label] = o
-    sync.Unlock()
+    to.Unlock()
 }
 
 func (to *TxObligations) Remove(label string) {
-    sync.Lock()
-    to.cmds = append(to.cmds, cmd.NewDeleteObligationTxCmd(to.targetObligations, label))
+    to.Lock()
+    to.cmds = append(to.cmds, func() error {
+        // obligation := to.targetObligations.Get(label)
+        to.targetObligations.Remove(label)
+        return nil
+    })
     delete(to.txObligations, label)
-    sync.Unlock()
+    to.Unlock()
 }
 
 func (to *TxObligations) SetEnable(label string, enabled bool) {
-    sync.Lock()
-    to.cmds = append(to.cmds, cmd.NewSetEnableTxCmd(to.targetObligations, label, enabled))
-    sync.Unlock()
+    to.Lock()
+    to.cmds = append(to.cmds, func() error {
+        to.targetObligations.SetEnable(label, enabled)
+        return nil
+    })
+    to.Unlock()
 }
 
-func (to *TxObligations) GetEnabled() {
-    sync.RLock()
+func (to *TxObligations) GetEnabled() []*obligations.Obligation {
+    to.RLock()
     enabled := to.targetObligations.GetEnabled()
     for _, o := range to.txObligations {
         if o.Enabled {
             enabled = append(enabled, o)
         }
     }
-    sync.RUnlock()
+    to.RUnlock()
     return enabled
 }
 
 func (to *TxObligations) Commit() (err error) {
-    sync.RLock()
-    defer sync.RUnlock()
+    to.RLock()
+    defer to.RUnlock()
     for _, txCmd := range to.cmds {
-        if err = txCmd.Commit(); err != nil {
+        if err = txCmd(); err != nil {
             return
         }
     }
+    return nil
 }

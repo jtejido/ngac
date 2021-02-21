@@ -1,10 +1,13 @@
-package service
+package ngac
 
 import (
     "fmt"
+    "github.com/jtejido/ngac/audit"
     "github.com/jtejido/ngac/common"
     "github.com/jtejido/ngac/context"
-    "github.com/jtejido/ngac/epp"
+    "github.com/jtejido/ngac/decider"
+    "github.com/jtejido/ngac/guard"
+    "github.com/jtejido/ngac/internal/set"
     "github.com/jtejido/ngac/pip/graph"
 )
 
@@ -16,11 +19,11 @@ type Graph struct {
     guard *guard.GraphGuard
 }
 
-func NewGraphService(userCtx context.Context, p common.FunctionalEntity, ep *epp.EPP, d decider.Decider, a audit.Auditor) *Graph {
+func NewGraphService(userCtx context.Context, p common.FunctionalEntity, ep *EPP, d decider.Decider, a audit.Auditor) *Graph {
     ans := new(Graph)
     ans.pap = p
-    ans.superPolicy = userCtx
-    ans.UserCtx = ep
+    ans.UserCtx = userCtx
+    ans.epp = ep
     ans.decider = d
     ans.auditor = a
     ans.graph = p.Graph()
@@ -28,7 +31,7 @@ func NewGraphService(userCtx context.Context, p common.FunctionalEntity, ep *epp
     return ans
 }
 
-func (g *Graph) CreatePolicyClass(name string, properties graph.PropertyMap) (*Node, error) {
+func (g *Graph) CreatePolicyClass(name string, properties graph.PropertyMap) (*graph.Node, error) {
     // check user has permission to create a policy class
     g.guard.CheckCreatePolicyClass(g.userCtx)
 
@@ -55,7 +58,7 @@ func (g *Graph) CreatePolicyClass(name string, properties graph.PropertyMap) (*N
  * @param additionalParents 0 or more node names to assign the new node to.
  * @return the new node.
  */
-func (g *Graph) CreateNode(name string, t graph.NodeType, properties graph.PropertyMap, initialParent string, additionalParents ...string) (node *Node, err error) {
+func (g *Graph) CreateNode(name string, t graph.NodeType, properties graph.PropertyMap, initialParent string, additionalParents ...string) (node *graph.Node, err error) {
     // check that the user can create the node in each of the parents
     g.guard.CheckCreateNode(g.userCtx, t, initialParent, additionalParents)
 
@@ -121,7 +124,7 @@ func (g *Graph) RemoveNode(name string) {
     g.graph.RemoveNode(name)
 
     // process the delete node event
-    err := g.epp.ProcessEvent(epp.NewDeleteNodeEvent(g.userCtx, node, parents))
+    err = g.epp.ProcessEvent(epp.NewDeleteNodeEvent(g.userCtx, node, parents))
     if err != nil {
         panic(err)
     }
@@ -443,7 +446,7 @@ func (g *Graph) Node(name string) (node *graph.Node, err error) {
     return
 }
 
-func (g *Graph) NodeFromDetails(t graph.NodeType, properties graph.PropertyMap) (node *Node, err error) {
+func (g *Graph) NodeFromDetails(t graph.NodeType, properties graph.PropertyMap) (node *graph.Node, err error) {
     node, err = g.graph.NodeFromDetails(t, properties)
 
     // check user has permissions on the node

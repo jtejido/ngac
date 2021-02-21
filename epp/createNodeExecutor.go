@@ -35,15 +35,15 @@ func (f *CreateNodeExecutor) Exec(g graph.Graph, p prohibitions.Prohibitions, o 
     }
 
     // second arg is the type, can be function
-    parentTypeArg := args[1]
-    parentType := parentTypeArg.Value
-    if parentTypeArg.Function != nil {
-        pt, err := functionEvaluator.Eval(g, p, o, eventCtx, parentTypeArg.Function)
-        if err != nil {
-            return nil, err
-        }
-        parentType = pt.(string)
-    }
+    // parentTypeArg := args[1]
+    // parentType := parentTypeArg.Value
+    // if parentTypeArg.Function != nil {
+    //     pt, err := functionEvaluator.Eval(g, p, o, eventCtx, parentTypeArg.Function)
+    //     if err != nil {
+    //         return nil, err
+    //     }
+    //     parentType = pt.(string)
+    // }
 
     // fourth arg is the name, can be function
     nameArg := args[2]
@@ -81,7 +81,7 @@ func (f *CreateNodeExecutor) Exec(g graph.Graph, p prohibitions.Prohibitions, o 
     }
 
     var parentNode *graph.Node
-    // if (len(parentName) != 0) {
+    // if (parentName != nil) {
     parentNode, err := g.Node(parentName)
     if err != nil {
         return nil, err

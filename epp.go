@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jtejido/ngac/common"
 	"github.com/jtejido/ngac/context"
+	"github.com/jtejido/ngac/epp"
 	"github.com/jtejido/ngac/operations"
 	"github.com/jtejido/ngac/pip/graph"
 	"github.com/jtejido/ngac/pip/obligations"
@@ -13,14 +14,14 @@ import (
 type EPP struct {
 	pap               common.FunctionalEntity
 	pdp               *PDP
-	functionEvaluator *FunctionEvaluator
+	functionEvaluator *epp.FunctionEvaluator
 }
 
-func NewEPP(pap common.FunctionalEntity, p *PDP, eppOptions *EPPOptions) *EPP {
+func NewEPP(pap common.FunctionalEntity, p *PDP, eppOptions *epp.EPPOptions) *EPP {
 	e := new(EPP)
 	e.pap = pap
 	e.pdp = p
-	e.functionEvaluator = NewFunctionEvaluator()
+	e.functionEvaluator = epp.NewFunctionEvaluator()
 	if eppOptions != nil {
 		for _, executor := range eppOptions.Executors() {
 			e.functionEvaluator.Add(executor)
@@ -30,15 +31,15 @@ func NewEPP(pap common.FunctionalEntity, p *PDP, eppOptions *EPPOptions) *EPP {
 	return e
 }
 
-func (epp *EPP) AddFunctionExecutor(executor FunctionExecutor) {
+func (epp *EPP) AddFunctionExecutor(executor epp.FunctionExecutor) {
 	epp.functionEvaluator.Add(executor)
 }
 
-func (epp *EPP) RemoveFunctionExecutor(executor FunctionExecutor) {
+func (epp *EPP) RemoveFunctionExecutor(executor epp.FunctionExecutor) {
 	epp.functionEvaluator.Remove(executor)
 }
 
-func (epp *EPP) ProcessEvent(eventCtx EventContext, user, process string) error {
+func (epp *EPP) ProcessEvent(eventCtx epp.EventContext, user, process string) error {
 	obligs := epp.pap.Obligations().All()
 	for _, obligation := range obligs {
 		if !obligation.Enabled {
@@ -69,7 +70,7 @@ func (epp *EPP) ProcessEvent(eventCtx EventContext, user, process string) error 
 	return nil
 }
 
-func Apply(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *FunctionEvaluator, eventCtx EventContext, rule *obligations.Rule, obligationLabel string) error {
+func Apply(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *epp.FunctionEvaluator, eventCtx epp.EventContext, rule *obligations.Rule, obligationLabel string) error {
 	// check the response condition
 	responsePattern := rule.ResponsePattern
 	cc, err := checkCondition(g, p, o, functionEvaluator, responsePattern.Condition, eventCtx)
@@ -107,7 +108,7 @@ func Apply(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations
 	return nil
 }
 
-func checkCondition(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *FunctionEvaluator, condition *obligations.Condition, eventCtx EventContext) (bool, error) {
+func checkCondition(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *epp.FunctionEvaluator, condition *obligations.Condition, eventCtx epp.EventContext) (bool, error) {
 	if condition == nil {
 		return true, nil
 	}
@@ -129,7 +130,7 @@ func checkCondition(g graph.Graph, p prohibitions.Prohibitions, o obligations.Ob
 /**
  * Return true if the condition is satisfied. A condition is satisfied if all the functions evaluate to false.
  */
-func checkNegatedCondition(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *FunctionEvaluator, condition *obligations.NegatedCondition, eventCtx EventContext) (bool, error) {
+func checkNegatedCondition(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *epp.FunctionEvaluator, condition *obligations.NegatedCondition, eventCtx epp.EventContext) (bool, error) {
 	if condition == nil {
 		return true, nil
 	}
@@ -148,7 +149,7 @@ func checkNegatedCondition(g graph.Graph, p prohibitions.Prohibitions, o obligat
 	return true, nil
 }
 
-func applyAction(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *FunctionEvaluator, label string, eventCtx EventContext, action obligations.Action) error {
+func applyAction(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *epp.FunctionEvaluator, label string, eventCtx epp.EventContext, action obligations.Action) error {
 	if action == nil {
 		return nil
 	}
@@ -173,7 +174,7 @@ func applyAction(g graph.Graph, p prohibitions.Prohibitions, o obligations.Oblig
 	return nil
 }
 
-func applyGrantAction(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *FunctionEvaluator, eventCtx EventContext, action *obligations.GrantAction) error {
+func applyGrantAction(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *epp.FunctionEvaluator, eventCtx epp.EventContext, action *obligations.GrantAction) error {
 	subject := action.Subject
 	op := action.Operations
 	target := action.Target
@@ -190,7 +191,7 @@ func applyGrantAction(g graph.Graph, p prohibitions.Prohibitions, o obligations.
 	return g.Associate(subjectNode.Name, targetNode.Name, operations.NewOperationSet(op))
 }
 
-func applyDenyAction(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *FunctionEvaluator, eventCtx EventContext, action *obligations.DenyAction) error {
+func applyDenyAction(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *epp.FunctionEvaluator, eventCtx epp.EventContext, action *obligations.DenyAction) error {
 	subject := action.Subject
 	ops := action.Operations
 	target := action.Target
@@ -218,7 +219,7 @@ func applyDenyAction(g graph.Graph, p prohibitions.Prohibitions, o obligations.O
 	// complement := target.Complement
 }
 
-func toDenyNodes(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *FunctionEvaluator, eventCtx EventContext, target *obligations.ActionTarget) (map[string]bool, error) {
+func toDenyNodes(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *epp.FunctionEvaluator, eventCtx epp.EventContext, target *obligations.ActionTarget) (map[string]bool, error) {
 	nodes := make(map[string]bool)
 	containers := target.Containers
 	for _, container := range containers {
@@ -247,7 +248,7 @@ func toDenyNodes(g graph.Graph, p prohibitions.Prohibitions, o obligations.Oblig
 	return nodes, nil
 }
 
-func toDenySubject(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *FunctionEvaluator, eventCtx EventContext, subject *obligations.EvrNode) (string, error) {
+func toDenySubject(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *epp.FunctionEvaluator, eventCtx epp.EventContext, subject *obligations.EvrNode) (string, error) {
 	var denySubject string
 
 	if subject.Function != nil {
@@ -278,7 +279,7 @@ func toDenySubject(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obl
 	return denySubject, nil
 }
 
-func applyDeleteAction(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *FunctionEvaluator, eventCtx EventContext, action *obligations.DeleteAction) error {
+func applyDeleteAction(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *epp.FunctionEvaluator, eventCtx epp.EventContext, action *obligations.DeleteAction) error {
 	nodes := action.Nodes
 	if nodes != nil {
 		for _, evrNode := range nodes {
@@ -349,7 +350,7 @@ func applyDeleteAction(g graph.Graph, p prohibitions.Prohibitions, o obligations
 	return nil
 }
 
-func toNode(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *FunctionEvaluator, eventCtx EventContext, evrNode *obligations.EvrNode) (node *graph.Node, err error) {
+func toNode(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *epp.FunctionEvaluator, eventCtx epp.EventContext, evrNode *obligations.EvrNode) (node *graph.Node, err error) {
 	if evrNode.Function != nil {
 		n, err := functionEvaluator.Eval(g, p, o, eventCtx, evrNode.Function)
 		if err != nil {
@@ -372,7 +373,7 @@ func toNode(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligation
 	return node, nil
 }
 
-func applyCreateAction(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *FunctionEvaluator, label string, eventCtx EventContext, action *obligations.CreateAction) (err error) {
+func applyCreateAction(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *epp.FunctionEvaluator, label string, eventCtx epp.EventContext, action *obligations.CreateAction) (err error) {
 	rules := action.Rules
 	if rules != nil {
 		for _, rule := range rules {
@@ -399,7 +400,7 @@ func applyCreateAction(g graph.Graph, p prohibitions.Prohibitions, o obligations
 	return nil
 }
 
-func createRule(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, obligationLabel string, eventCtx EventContext, rule *obligations.Rule) {
+func createRule(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, obligationLabel string, eventCtx epp.EventContext, rule *obligations.Rule) {
 	// add the rule to the obligation
 	obligation := o.Get(obligationLabel)
 	rules := obligation.Rules
@@ -408,7 +409,7 @@ func createRule(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obliga
 	o.Update(obligationLabel, obligation)
 }
 
-func applyAssignAction(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *FunctionEvaluator, eventCtx EventContext, action *obligations.AssignAction) error {
+func applyAssignAction(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *epp.FunctionEvaluator, eventCtx epp.EventContext, action *obligations.AssignAction) error {
 	assignments := action.Assignments
 	if assignments != nil {
 		for _, assignment := range assignments {
