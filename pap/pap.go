@@ -2,28 +2,31 @@ package pap
 
 import (
 	"github.com/jtejido/ngac/common"
+	"github.com/jtejido/ngac/pip/graph"
+	"github.com/jtejido/ngac/pip/obligations"
+	"github.com/jtejido/ngac/pip/prohibitions"
 	"github.com/jtejido/ngac/pip/tx"
 )
 
 type PAP struct {
-	graphAdmin        GraphAdmin
-	prohibitionsAdmin ProhibitionsAdmin
-	obligationsAdmin  ObligationsAdmin
+	graphAdmin        *GraphAdmin
+	prohibitionsAdmin *ProhibitionsAdmin
+	obligationsAdmin  *ObligationsAdmin
 }
 
-func NewPAP(graphAdmin GraphAdmin, prohibitionsAdmin ProhibitionsAdmin, obligationsAdmin ObligationsAdmin) *PAP {
-	return &PAP{graphAdmin, prohibitionsAdmin, obligationsAdmin}
+func NewPAP(p common.FunctionalEntity) *PAP {
+	return &PAP{NewGraphAdmin(p), NewProhibitionsAdmin(p), NewObligationsAdmin(p)}
 }
 
-func (pap *PAP) Graph() Graph {
+func (pap *PAP) Graph() graph.Graph {
 	return pap.graphAdmin
 }
 
-func (pap *PAP) Prohibitions() Prohibitions {
+func (pap *PAP) Prohibitions() prohibitions.Prohibitions {
 	return pap.prohibitionsAdmin
 }
 
-func (pap *PAP) Obligations() Obligations {
+func (pap *PAP) Obligations() obligations.Obligations {
 	return pap.obligationsAdmin
 }
 

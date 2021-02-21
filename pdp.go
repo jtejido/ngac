@@ -49,6 +49,9 @@ type WithUser struct {
 	epp     *EPP
 	decider decider.Decider
 	auditor audit.Auditor
+	gs      graph.Graph
+	ps      prohibitions.Prohibitions
+	os      obligations.Obligations
 	// analyticsService
 }
 
@@ -59,25 +62,22 @@ func (p *PDP) WithUser(userCtx context.Context) *WithUser {
 }
 
 func newWithUser(userCtx context.Context, p common.FunctionalEntity, e *EPP, d decider.Decider, a audit.Auditor) *WithUser {
-	return &WithUser{userCtx, p, e, d, a}
+	return &WithUser{userCtx, p, e, d, a, NewGraphService(userCtx, p, e, d, a), NewProhibitionsService(userCtx, p, e, d, a), NewObligationsService(userCtx, p, e, d, a)}
 }
 
 func (wu *WithUser) Graph() graph.Graph {
-	return NewGraphService(wu.userCtx, wu.pap, wu.epp, wu.decider, wu.auditor)
+	return wu.gs
 }
 
 func (wu *WithUser) Prohibitions() prohibitions.Prohibitions {
-	return NewProhibitionsService(wu.userCtx, wu.pap, wu.epp, wu.decider, wu.auditor)
+	return wu.ps
 }
 
 func (wu *WithUser) Obligations() obligations.Obligations {
-	return NewObligationsService(wu.userCtx, wu.pap, wu.epp, wu.decider, wu.auditor)
+	return wu.os
 }
 
 func (wu *WithUser) RunTx(txRunner common.TxRunner) error {
-	graphService := NewGraphService(wu.userCtx, wu.pap, wu.epp, wu.decider, wu.auditor)
-	prohibitionsService := NewProhibitionsService(wu.userCtx, wu.pap, wu.epp, wu.decider, wu.auditor)
-	obligationsService := NewObligationsService(wu.userCtx, wu.pap, wu.epp, wu.decider, wu.auditor)
-	tx := tx.NewMemTx(graphService, prohibitionsService, obligationsService)
+	tx := tx.NewMemTx(wu.gs, wu.ps, wu.os)
 	return tx.RunTx(txRunner)
 }

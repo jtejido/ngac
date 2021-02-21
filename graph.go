@@ -6,8 +6,11 @@ import (
     "github.com/jtejido/ngac/common"
     "github.com/jtejido/ngac/context"
     "github.com/jtejido/ngac/decider"
+    "github.com/jtejido/ngac/epp"
     "github.com/jtejido/ngac/guard"
     "github.com/jtejido/ngac/internal/set"
+    "github.com/jtejido/ngac/operations"
+    "github.com/jtejido/ngac/pap/policy"
     "github.com/jtejido/ngac/pip/graph"
 )
 
@@ -15,19 +18,17 @@ var _ graph.Graph = &Graph{}
 
 type Graph struct {
     Service
-    graph graph.Graph
-    guard *guard.GraphGuard
+    guard *guard.Graph
 }
 
-func NewGraphService(userCtx context.Context, p common.FunctionalEntity, ep *EPP, d decider.Decider, a audit.Auditor) *Graph {
+func NewGraphService(userCtx context.Context, p common.FunctionalEntity, e *EPP, d decider.Decider, a audit.Auditor) *Graph {
     ans := new(Graph)
+    ans.userCtx = userCtx
     ans.pap = p
-    ans.UserCtx = userCtx
-    ans.epp = ep
+    ans.epp = e
     ans.decider = d
     ans.auditor = a
-    ans.graph = p.Graph()
-    ans.guard = guard.NewGraphGuard(pap, decider)
+    ans.guard = guard.NewGraphGuard(p, d)
     return ans
 }
 
@@ -36,7 +37,7 @@ func (g *Graph) CreatePolicyClass(name string, properties graph.PropertyMap) (*g
     g.guard.CheckCreatePolicyClass(g.userCtx)
 
     // create and return the new policy class
-    return g.graph.CreatePolicyClass(name, properties)
+    return g.GraphAdmin().CreatePolicyClass(name, properties)
 }
 
 /**
@@ -63,10 +64,10 @@ func (g *Graph) CreateNode(name string, t graph.NodeType, properties graph.Prope
     g.guard.CheckCreateNode(g.userCtx, t, initialParent, additionalParents)
 
     //create the node
-    node, err = graph.CreateNode(name, t, properties, initialParent, additionalParents)
+    node, err = g.GraphAdmin().CreateNode(name, t, properties, initialParent, additionalParents...)
 
     // process the event
-    g.epp.ProcessEvent(epp.NewCreateNodeEvent(g.userCtx, node, initialParent, additionalParents))
+    g.epp.ProcessEvent(epp.NewCreateNodeEvent(g.userCtx, node, initialParent, additionalParents...))
 
     return
 }
@@ -85,7 +86,7 @@ func (g *Graph) UpdateNode(name string, properties graph.PropertyMap) error {
     g.guard.CheckUpdateNode(g.userCtx, name)
 
     //update node in the PAP
-    return g.graph.UpdateNode(name, properties)
+    return g.GraphAdmin().UpdateNode(name, properties)
 }
 
 /**
@@ -97,7 +98,7 @@ func (g *Graph) UpdateNode(name string, properties graph.PropertyMap) error {
  * @throws PMAuthorizationException if the user is not authorized to delete the node.
  */
 func (g *Graph) RemoveNode(name string) {
-    node, err := g.graph.Node(name)
+    node, err := g.GraphAdmin().Node(name)
     if err != nil {
         panic(err)
     }
@@ -106,22 +107,22 @@ func (g *Graph) RemoveNode(name string) {
     g.guard.CheckDeleteNode(g.userCtx, node.Type, name)
 
     // check that the node does not have any children
-    if g.graph.Children(name).Len() > 0 {
+    if g.GraphAdmin().Children(name).Len() > 0 {
         panic(fmt.Sprintf("cannot delete %s, nodes are still assigned to it", name))
     }
 
     // if it's a PC, delete the rep
     if node.Type == graph.PC {
         if v, ok := node.Properties.Get(graph.REP_PROPERTY); ok {
-            g.graph.RemoveNode(v.(string))
+            g.GraphAdmin().RemoveNode(v.(string))
         }
     }
 
     // get the
-    parents := g.graph.Parents(name)
+    parents := g.GraphAdmin().Parents(name)
 
     // delete the node
-    g.graph.RemoveNode(name)
+    g.GraphAdmin().RemoveNode(name)
 
     // process the delete node event
     err = g.epp.ProcessEvent(epp.NewDeleteNodeEvent(g.userCtx, node, parents))
@@ -149,12 +150,15 @@ func (g *Graph) RemoveNode(name string) {
  * @throws PMException if there is an error checking if the node exists in the graph through the PAP.
  */
 func (g *Graph) Exists(name string) bool {
-    exists := g.graph.Exists(name)
+    exists := g.GraphAdmin().Exists(name)
     if !exists {
         return false
     }
-
-    return g.guard.CheckExists(g.userCtx, name)
+    ok, err := g.guard.CheckExists(g.userCtx, name)
+    if err != nil {
+        return false
+    }
+    return ok
 }
 
 /**
@@ -164,9 +168,12 @@ func (g *Graph) Exists(name string) bool {
  * @throws PMException if there is an error getting the nodes from the PAP.
  */
 func (g *Graph) Nodes() set.Set {
-    nodes := set.NewSet().AddFrom(g.graph.Nodes())
+    nodes := set.NewSet()
+    nodes.AddFrom(g.GraphAdmin().Nodes())
     g.guard.FilterNodes(g.userCtx, nodes)
-    return set.NewSet().AddFrom(nodes)
+    res := set.NewSet()
+    res.AddFrom(nodes)
+    return res
 }
 
 /**
@@ -175,7 +182,7 @@ func (g *Graph) Nodes() set.Set {
  * @throws PMException if there is an error getting the policy classes from the PAP.
  */
 func (g *Graph) PolicyClasses() set.Set {
-    return g.graph.PolicyClasses()
+    return g.GraphAdmin().PolicyClasses()
 }
 
 func (g *Graph) PolicyClassDefault(pc string, t graph.NodeType) string {
@@ -197,7 +204,7 @@ func (g *Graph) Children(name string) set.Set {
         panic(fmt.Sprintf("node %s could not be found", name))
     }
 
-    children := g.graph.Children(name)
+    children := g.GraphAdmin().Children(name)
     g.guard.Filter(g.userCtx, children)
     return children
 }
@@ -215,7 +222,7 @@ func (g *Graph) Parents(name string) set.Set {
         panic(fmt.Sprintf("node %s could not be found", name))
     }
 
-    parents := g.graph.Parents(name)
+    parents := g.GraphAdmin().Parents(name)
     g.guard.Filter(g.userCtx, parents)
     return parents
 }
@@ -236,7 +243,7 @@ func (g *Graph) Assign(child, parent string) (err error) {
     g.guard.CheckAssign(g.userCtx, child, parent)
 
     // assign in the PAP
-    if err = g.graph.Assign(child, parent); err != nil {
+    if err = g.GraphAdmin().Assign(child, parent); err != nil {
         return
     }
 
@@ -245,7 +252,7 @@ func (g *Graph) Assign(child, parent string) (err error) {
     if childNode, err = g.Node(child); err != nil {
         return
     }
-    if parentNode, err = g.getNode(parent); err != nil {
+    if parentNode, err = g.Node(parent); err != nil {
         return
     }
     if err = g.epp.ProcessEvent(epp.NewAssignEvent(g.userCtx, childNode, parentNode)); err != nil {
@@ -270,7 +277,7 @@ func (g *Graph) Deassign(child, parent string) (err error) {
     g.guard.CheckDeassign(g.userCtx, child, parent)
 
     //delete assignment in PAP
-    if err = g.graph.Deassign(child, parent); err != nil {
+    if err = g.GraphAdmin().Deassign(child, parent); err != nil {
         return
     }
 
@@ -299,7 +306,7 @@ func (g *Graph) IsAssigned(child, parent string) bool {
         panic(err)
     }
 
-    return g.graph.IsAssigned(childNode.Name, parentNode.Name)
+    return g.GraphAdmin().IsAssigned(childNode.Name, parentNode.Name)
 }
 
 /**
@@ -322,16 +329,16 @@ func (g *Graph) Associate(ua, target string, ops operations.OperationSet) (err e
     g.guard.CheckAssociate(g.userCtx, ua, target)
 
     //create association in PAP
-    if err = g.graph.Associate(ua, target, ops); err != nil {
+    if err = g.GraphAdmin().Associate(ua, target, ops); err != nil {
         return
     }
 
     var n, t *graph.Node
-    if n, err = g.graph.Node(ua); err != nil {
+    if n, err = g.GraphAdmin().Node(ua); err != nil {
         return
     }
 
-    if t, err = g.graph.Node(target); err != nil {
+    if t, err = g.GraphAdmin().Node(target); err != nil {
         return
     }
     return g.epp.ProcessEvent(epp.NewAssociationEvent(g.userCtx, n, t))
@@ -354,14 +361,14 @@ func (g *Graph) Dissociate(ua, target string) (err error) {
     g.guard.CheckDissociate(g.userCtx, ua, target)
 
     //create association in PAP
-    if err = graph.Dissociate(ua, target); err != nil {
+    if err = g.GraphAdmin().Dissociate(ua, target); err != nil {
         return
     }
     var n, t *graph.Node
-    if n, err = g.graph.Node(ua); err != nil {
+    if n, err = g.GraphAdmin().Node(ua); err != nil {
         return
     }
-    if t, err = g.graph.Node(target); err != nil {
+    if t, err = g.GraphAdmin().Node(target); err != nil {
         return
     }
     return g.epp.ProcessEvent(epp.NewDeleteAssociationEvent(g.userCtx, n, t))
@@ -381,10 +388,10 @@ func (g *Graph) SourceAssociations(source string) (sourceAssociations map[string
     g.guard.CheckGetAssociations(g.userCtx, source)
 
     // get the associations for the source node
-    sourceAssociations, err = g.graph.SourceAssociations(source)
+    sourceAssociations, err = g.GraphAdmin().SourceAssociations(source)
 
     // filter out any associations in which the user does not have access to the target attribute
-    g.guard.Filter(g.userCtx, sourceAssociations)
+    g.guard.FilterMap(g.userCtx, sourceAssociations)
 
     return
 }
@@ -403,10 +410,10 @@ func (g *Graph) TargetAssociations(target string) (targetAssociations map[string
     g.guard.CheckGetAssociations(g.userCtx, target)
 
     // get the associations for the target node
-    targetAssociations, err = graph.getTargetAssociations(target)
+    targetAssociations, err = g.GraphAdmin().TargetAssociations(target)
 
     // filter out any associations in which the user does not have access to the source attribute
-    g.guard.Filter(g.userCtx, targetAssociations)
+    g.guard.FilterMap(g.userCtx, targetAssociations)
 
     return
 }
@@ -422,7 +429,7 @@ func (g *Graph) TargetAssociations(target string) (targetAssociations map[string
  * @throws PMAuthorizationException If the current user does not have permission to get hte node's associations.
  */
 func (g *Graph) Search(t graph.NodeType, properties graph.PropertyMap) set.Set {
-    search := g.graph.Search(t, properties)
+    search := g.GraphAdmin().Search(t, properties)
     //System.out.println(search);
     g.guard.FilterNodes(g.userCtx, search)
     return search
@@ -438,7 +445,7 @@ func (g *Graph) Search(t graph.NodeType, properties graph.PropertyMap) set.Set {
  */
 func (g *Graph) Node(name string) (node *graph.Node, err error) {
     // get node
-    node, err = g.graph.Node(name)
+    node, err = g.GraphAdmin().Node(name)
 
     // check user has permissions on the node
     g.guard.CheckExists(g.userCtx, name)
@@ -447,10 +454,10 @@ func (g *Graph) Node(name string) (node *graph.Node, err error) {
 }
 
 func (g *Graph) NodeFromDetails(t graph.NodeType, properties graph.PropertyMap) (node *graph.Node, err error) {
-    node, err = g.graph.NodeFromDetails(t, properties)
+    node, err = g.GraphAdmin().NodeFromDetails(t, properties)
 
     // check user has permissions on the node
-    g.guard.CheckExists(g.userCtx, node.getName())
+    g.guard.CheckExists(g.userCtx, node.Name)
 
     return
 }
@@ -460,49 +467,49 @@ func (g *Graph) NodeFromDetails(t graph.NodeType, properties graph.PropertyMap) 
  *
  * @throws PMException if something goes wrong in the deletion process
  */
-func (g *Graph) Reset(userCtx Context) (err error) {
+func (g *Graph) Reset(userCtx context.Context) (err error) {
     g.guard.CheckReset(userCtx)
 
-    nodes := g.graph.Nodes()
+    nodes := g.GraphAdmin().Nodes()
     names := set.NewSet()
     prohibitions_name := set.NewSet()
     for n := range nodes.Iter() {
         node := n.(*graph.Node)
         names.Add(node.Name)
         if node.Type == graph.UA || node.Type == graph.OA {
-            ta, err := g.graph.TargetAssociations(node.Name)
+            ta, err := g.GraphAdmin().TargetAssociations(node.Name)
             if err != nil {
                 return err
             }
             for el, _ := range ta {
-                if err = g.graph.Dissociate(el, node.Name); err != nil {
+                if err = g.GraphAdmin().Dissociate(el, node.Name); err != nil {
                     return err
                 }
             }
             if node.Type == graph.UA {
-                sa, err := g.graph.SourceAssociations(node.Name)
+                sa, err := g.GraphAdmin().SourceAssociations(node.Name)
                 if err != nil {
                     return err
                 }
                 for el, _ := range sa {
-                    if err = g.graph.Dissociate(node.Name, el); err != nil {
+                    if err = g.GraphAdmin().Dissociate(node.Name, el); err != nil {
                         return err
                     }
                 }
             }
         }
-        ch := g.graph.Children(node.Name)
+        ch := g.GraphAdmin().Children(node.Name)
         for el := range ch.Iter() {
-            if g.graph.IsAssigned(el.(string), node.Name) {
-                if err = g.graph.Deassign(el.(string), node.Name); err != nil {
+            if g.GraphAdmin().IsAssigned(el.(string), node.Name) {
+                if err = g.GraphAdmin().Deassign(el.(string), node.Name); err != nil {
                     return
                 }
             }
         }
-        parents := g.graph.Parents(node.Name)
+        parents := g.GraphAdmin().Parents(node.Name)
         for el := range parents.Iter() {
-            if g.graph.IsAssigned(node.Name, el.(string)) {
-                if err = g.graph.Deassign(node.Name, el.(string)); err != nil {
+            if g.GraphAdmin().IsAssigned(node.Name, el.(string)) {
+                if err = g.GraphAdmin().Deassign(node.Name, el.(string)); err != nil {
                     return
                 }
             }
@@ -518,9 +525,9 @@ func (g *Graph) Reset(userCtx Context) (err error) {
     }
 
     for name := range names.Iter() {
-        g.graph.RemoveNode(name.(string))
+        g.GraphAdmin().RemoveNode(name.(string))
     }
     //setup Super policy in GraphAdmin + copy graph and graph copy
     g.superPolicy = policy.NewSuperPolicy()
-    g.superPolicy.Configure(g.graph)
+    return g.superPolicy.Configure(g.GraphAdmin())
 }

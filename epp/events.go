@@ -262,7 +262,7 @@ func NewAssignToEvent(userCtx context.Context, target, childNode *graph.Node) *A
 
 type AssociationEvent struct {
 	eventContext
-	Source, Target *graph.Node
+	Source, assocTarget *graph.Node
 }
 
 func NewAssociationEvent(userCtx context.Context, source, target *graph.Node) *AssociationEvent {
@@ -270,9 +270,13 @@ func NewAssociationEvent(userCtx context.Context, source, target *graph.Node) *A
 	ans.userCtx = userCtx
 	ans.event = "association"
 	ans.target = target
-	ans.Target = target
+	ans.assocTarget = target
 	ans.Source = source
 	return ans
+}
+
+func (ae *AssociationEvent) Target() *graph.Node {
+	return ae.assocTarget
 }
 
 type CreateNodeEvent struct {
@@ -323,7 +327,7 @@ func NewDeassignFromEvent(userCtx context.Context, target, childNode *graph.Node
 
 type DeleteAssociationEvent struct {
 	eventContext
-	Source, Target *graph.Node
+	Source, assocTarget *graph.Node
 }
 
 func NewDeleteAssociationEvent(userCtx context.Context, source, target *graph.Node) *DeleteAssociationEvent {
@@ -331,9 +335,13 @@ func NewDeleteAssociationEvent(userCtx context.Context, source, target *graph.No
 	ans.userCtx = userCtx
 	ans.event = "delete association"
 	ans.target = target
-	ans.Target = target
+	ans.assocTarget = target
 	ans.Source = source
 	return ans
+}
+
+func (ae *DeleteAssociationEvent) Target() *graph.Node {
+	return ae.assocTarget
 }
 
 type DeleteNodeEvent struct {
