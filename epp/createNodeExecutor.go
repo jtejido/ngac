@@ -35,15 +35,15 @@ func (f *CreateNodeExecutor) Exec(g graph.Graph, p prohibitions.Prohibitions, o 
     }
 
     // second arg is the type, can be function
-    // parentTypeArg := args[1]
-    // parentType := parentTypeArg.Value
-    // if parentTypeArg.Function != nil {
-    //     pt, err := functionEvaluator.Eval(g, p, o, eventCtx, parentTypeArg.Function)
-    //     if err != nil {
-    //         return nil, err
-    //     }
-    //     parentType = pt.(string)
-    // }
+    parentTypeArg := args[1]
+    parentType := parentTypeArg.Value
+    if parentTypeArg.Function != nil {
+        pt, err := functionEvaluator.Eval(g, p, o, eventCtx, parentTypeArg.Function)
+        if err != nil {
+            return nil, err
+        }
+        parentType = pt.(string)
+    }
 
     // fourth arg is the name, can be function
     nameArg := args[2]
@@ -81,14 +81,18 @@ func (f *CreateNodeExecutor) Exec(g graph.Graph, p prohibitions.Prohibitions, o 
     }
 
     var parentNode *graph.Node
-    // if (parentName != nil) {
-    parentNode, err := g.Node(parentName)
-    if err != nil {
-        return nil, err
+    var err error
+    if len(parentName) > 0 {
+        parentNode, err = g.Node(parentName)
+        if err != nil {
+            return nil, err
+        }
+    } else {
+        parentNode, err = g.NodeFromDetails(graph.ToNodeType(parentType), graph.NewPropertyMap())
+        if err != nil {
+            return nil, err
+        }
     }
-    // } else {
-    //     parentNode = graph.getNode(NodeType.toNodeType(parentType), new HashMap<>());
-    // }
 
     return g.CreateNode(name, graph.ToNodeType(t), props, parentNode.Name)
 }

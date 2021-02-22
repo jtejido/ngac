@@ -1,6 +1,7 @@
 package prohibitions
 
 import (
+	"github.com/jtejido/ngac/operations"
 	"math/rand"
 	"runtime"
 	"sync"
@@ -47,4 +48,89 @@ func TestAddGetConcurrent(t *testing.T) {
 			t.Errorf("Set is missing element: %v", i)
 		}
 	}
+}
+
+func TestCreateProhibition(t *testing.T) {
+	prohibs := NewMemProhibitions()
+
+	builder := NewBuilder("prohibition1", "123", operations.NewOperationSet("read"))
+	builder.AddContainer("1234", true)
+	prohibition := builder.Build()
+	prohibs.Add(prohibition)
+
+	builder = NewBuilder("p123", "sub", operations.NewOperationSet("read"))
+	builder.AddContainer("1234", true)
+	prohibition = builder.Build()
+
+	prohibs.Add(prohibition)
+
+	p123 := prohibs.Get("p123")
+	if p123.Name != "p123" {
+		t.Errorf("Name do not match")
+	}
+	if p123.Subject != "sub" {
+		t.Errorf("Subject do not match")
+	}
+	if p123.Intersection {
+		t.Errorf("Intersection should be false")
+	}
+	if p123.Intersection {
+		t.Errorf("Intersection should be false")
+	}
+	if _, ok := prohibition.Containers()["1234"]; !ok {
+		t.Errorf("\\'1234\\' should be in containers")
+	}
+	if v, ok := prohibition.Containers()["1234"]; !ok {
+		t.Errorf("\\'1234\\' should be in containers")
+	} else {
+		if !v {
+			t.Errorf("\\'1234\\' should be \\'true\\'")
+		}
+	}
+
+}
+
+func TestGetProhibitions(t *testing.T) {
+	prohibs := NewMemProhibitions()
+
+	builder := NewBuilder("prohibition1", "123", operations.NewOperationSet("read"))
+	builder.AddContainer("1234", true)
+	prohibition := builder.Build()
+	prohibs.Add(prohibition)
+
+	prohibitions := prohibs.All()
+	if len(prohibitions) != 1 {
+		t.Errorf("incorrect size")
+	}
+}
+
+func TestGetProhibition(t *testing.T) {
+	prohibs := NewMemProhibitions()
+
+	builder := NewBuilder("prohibition1", "123", operations.NewOperationSet("read"))
+	builder.AddContainer("1234", true)
+	prohibition := builder.Build()
+	prohibs.Add(prohibition)
+
+	prohibition = prohibs.Get("prohibition1")
+	if prohibition.Name != "prohibition1" {
+		t.Errorf("incorrect name")
+	}
+	if prohibition.Subject != "123" {
+		t.Errorf("incorrect subject")
+	}
+	if prohibition.Intersection {
+		t.Errorf("Intersection should be false")
+	}
+	if _, ok := prohibition.Containers()["1234"]; !ok {
+		t.Errorf("\\'1234\\' should be in containers")
+	}
+	if v, ok := prohibition.Containers()["1234"]; !ok {
+		t.Errorf("\\'1234\\' should be in containers")
+	} else {
+		if !v {
+			t.Errorf("\\'1234\\' should be \\'true\\'")
+		}
+	}
+
 }

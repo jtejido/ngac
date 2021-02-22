@@ -146,7 +146,9 @@ func (mg *MemGraph) removeEdge(fid, tid string) error {
 }
 
 func (mg *MemGraph) CreatePolicyClass(name string, properties PropertyMap) (*Node, error) {
-	if mg.Exists(name) {
+	if len(name) == 0 {
+		return nil, fmt.Errorf("no name was provided when creating a node in the in-memory graph")
+	} else if mg.Exists(name) {
 		return nil, fmt.Errorf("the name %s already exists in the graph", name)
 	}
 
@@ -166,8 +168,11 @@ func (mg *MemGraph) CreatePolicyClass(name string, properties PropertyMap) (*Nod
 
 func (mg *MemGraph) CreateNode(name string, t NodeType, properties PropertyMap, initialParent string, additionalParents ...string) (*Node, error) {
 	//check for null values
+
 	if t == PC {
 		return nil, fmt.Errorf("use CreatePolicyClass to create a policy class node")
+	} else if len(name) == 0 {
+		return nil, fmt.Errorf("no name was provided when creating a node in the in-memory graph")
 	} else if mg.Exists(name) {
 		return nil, fmt.Errorf("the name %s already exists in the graph", name)
 	}
@@ -267,7 +272,7 @@ func (mg *MemGraph) Search(t NodeType, properties PropertyMap) set.Set {
 	results := set.NewSet()
 	// iterate over the nodes to find ones that match the search parameters
 	for _, node := range mg.nodes {
-		if node.Type != t && t != ALL {
+		if node.Type != t && t != NOOP {
 			continue
 		}
 

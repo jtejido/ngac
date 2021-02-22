@@ -34,31 +34,31 @@ func (f *GetNodeExecutor) Exec(g graph.Graph, p prohibitions.Prohibitions, o obl
     }
 
     // second arg should be the type of the node to search for
-    // arg = args[1]
-    // t := arg.Value
-    // if arg.Function != nil {
-    //     ty, err := functionEvaluator.Eval(g, p, o, eventCtx, arg.Function)
-    //     if err != nil {
-    //         return nil, err
-    //     }
-    //     t = ty.(string)
-    // }
+    arg = args[1]
+    t := arg.Value
+    if arg.Function != nil {
+        ty, err := functionEvaluator.Eval(g, p, o, eventCtx, arg.Function)
+        if err != nil {
+            return nil, err
+        }
+        t = ty.(string)
+    }
 
-    // props := graph.NewPropertyMap()
-    // if len(args) > 2 {
-    //     arg = args[0]
-    //     if arg.Function != nil {
-    //         pr, err := functionEvaluator.Eval(g, p, o, eventCtx, arg.Function)
-    //         if err != nil {
-    //             return nil, err
-    //         }
-    //         props = pr.(graph.PropertyMap)
-    //     }
-    // }
+    props := graph.NewPropertyMap()
+    if len(args) > 2 {
+        arg = args[0]
+        if arg.Function != nil {
+            pr, err := functionEvaluator.Eval(g, p, o, eventCtx, arg.Function)
+            if err != nil {
+                return nil, err
+            }
+            props = pr.(graph.PropertyMap)
+        }
+    }
 
-    // if (name != nil) {
-    return g.Node(name)
-    // }
+    if len(name) > 0 {
+        return g.Node(name)
+    }
 
-    // return graph.getNode(NodeType.toNodeType(type), props);
+    return g.NodeFromDetails(graph.ToNodeType(t), props)
 }

@@ -75,7 +75,7 @@ type NodeType int
  * OS = Operation Set
  */
 const (
-	ALL NodeType = iota - 1
+	NOOP NodeType = iota - 1
 	OA
 	UA
 	U
@@ -113,7 +113,7 @@ func ToNodeType(t string) NodeType {
 	case "PC":
 		return PC
 	default:
-		return ALL
+		return NOOP
 	}
 }
 

@@ -153,7 +153,7 @@ func TestCurrentProcessExecutorTest(t *testing.T) {
         t.Errorf("result should not be nil")
     }
     if result.(string) != "1234" {
-        t.Errorf("result should not be nil")
+        t.Errorf("result should 1234")
     }
 }
 

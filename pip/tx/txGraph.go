@@ -10,14 +10,20 @@ import (
 
 type txGraphCommitter interface {
     Committer() Committer
+    Id() string
 }
 
 type txGraphCommitterImpl struct {
-    c Committer
+    id string
+    c  Committer
 }
 
 func (c *txGraphCommitterImpl) Committer() Committer {
     return c.c
+}
+
+func (c *txGraphCommitterImpl) Id() string {
+    return c.id
 }
 
 type txGraphDeassignCommitter struct {
@@ -27,6 +33,10 @@ type txGraphDeassignCommitter struct {
 
 func (c *txGraphDeassignCommitter) Committer() Committer {
     return c.c
+}
+
+func (c *txGraphDeassignCommitter) Id() string {
+    return "deassign"
 }
 
 type txGraphDissociateCommitter struct {
@@ -39,6 +49,10 @@ func (c *txGraphDissociateCommitter) Committer() Committer {
     return c.c
 }
 
+func (c *txGraphDissociateCommitter) Id() string {
+    return "dissociate"
+}
+
 type TxGraph struct {
     sync.RWMutex
     targetGraph  graph.Graph
@@ -46,8 +60,7 @@ type TxGraph struct {
     pcs          set.Set
     assignments  map[string]set.Set
     associations map[string]map[string]operations.OperationSet
-    cmds         map[string][]txGraphCommitter
-    idx          []string
+    cmds         []txGraphCommitter
 }
 
 func NewTxGraph(g graph.Graph) *TxGraph {
@@ -57,8 +70,7 @@ func NewTxGraph(g graph.Graph) *TxGraph {
     ans.pcs = set.NewSet()
     ans.assignments = make(map[string]set.Set)
     ans.associations = make(map[string]map[string]operations.OperationSet)
-    ans.cmds = make(map[string][]txGraphCommitter)
-    ans.idx = make([]string, 0)
+    ans.cmds = make([]txGraphCommitter, 0)
     return ans
 }
 
@@ -67,17 +79,13 @@ func (tx *TxGraph) CreatePolicyClass(name string, properties graph.PropertyMap) 
     tx.pcs.Add(pc)
     tx.nodes[name] = pc
 
-    _, found := tx.cmds["create_policy_class"]
-    if !found {
-        tx.cmds["create_policy_class"] = make([]txGraphCommitter, 0)
-        tx.idx = append(tx.idx, "create_policy_class")
-    }
-    tx.cmds["create_policy_class"] = append(tx.cmds["create_policy_class"], &txGraphCommitterImpl{
+    tx.cmds = append(tx.cmds, &txGraphCommitterImpl{
         c: func() error {
             _, err := tx.targetGraph.CreatePolicyClass(name, properties)
             return err
-        }},
-    )
+        },
+        id: "create_policy_class",
+    })
 
     return pc, nil
 }
@@ -99,13 +107,8 @@ func (tx *TxGraph) CreateNode(name string, t graph.NodeType, properties graph.Pr
             return nil, fmt.Errorf("parent %s does not exist", parent.(string))
         }
     }
-    _, found := tx.cmds["create_node"]
-    if !found {
-        tx.cmds["create_node"] = make([]txGraphCommitter, 0)
-        tx.idx = append(tx.idx, "create_node")
-    }
 
-    tx.cmds["create_node"] = append(tx.cmds["create_node"], &txGraphCommitterImpl{
+    tx.cmds = append(tx.cmds, &txGraphCommitterImpl{
         c: func() error {
             it := parents.Iterator()
             var ip string
@@ -122,8 +125,9 @@ func (tx *TxGraph) CreateNode(name string, t graph.NodeType, properties graph.Pr
             }
             _, err := tx.targetGraph.CreateNode(name, t, properties, ip, pts...)
             return err
-        }},
-    )
+        },
+        id: "create_node",
+    })
 
     return node, nil
 }
@@ -148,12 +152,8 @@ func (tx *TxGraph) UpdateNode(name string, properties graph.PropertyMap) (err er
     }
 
     tx.nodes[name] = node
-    _, found := tx.cmds["update_node"]
-    if !found {
-        tx.cmds["update_node"] = make([]txGraphCommitter, 0)
-        tx.idx = append(tx.idx, "update_node")
-    }
-    tx.cmds["update_node"] = append(tx.cmds["update_node"], &txGraphCommitterImpl{
+
+    tx.cmds = append(tx.cmds, &txGraphCommitterImpl{
         c: func() error {
             // node, err := tx.targetGraph.Node(name)
             // if err != nil {
@@ -161,8 +161,9 @@ func (tx *TxGraph) UpdateNode(name string, properties graph.PropertyMap) (err er
             // }
             // originalProperties := node.Properties
             return tx.targetGraph.UpdateNode(name, properties)
-        }},
-    )
+        },
+        id: "update_node",
+    })
     return nil
 }
 
@@ -171,17 +172,14 @@ func (tx *TxGraph) RemoveNode(name string) {
         delete(tx.nodes, name)
         tx.pcs.Remove(graph.NewNodeWithoutProps(name, graph.PC))
     }
-    _, found := tx.cmds["remove_node"]
-    if !found {
-        tx.cmds["remove_node"] = make([]txGraphCommitter, 0)
-        tx.idx = append(tx.idx, "remove_node")
-    }
-    tx.cmds["remove_node"] = append(tx.cmds["remove_node"], &txGraphCommitterImpl{
+
+    tx.cmds = append(tx.cmds, &txGraphCommitterImpl{
         c: func() error {
             tx.targetGraph.RemoveNode(name)
             return nil
-        }},
-    )
+        },
+        id: "remove_node",
+    })
 }
 
 func (tx *TxGraph) Exists(name string) bool {
@@ -274,7 +272,7 @@ func (tx *TxGraph) txSearch(t graph.NodeType, properties graph.PropertyMap) map[
     // iterate over the nodes to find ones that match the search parameters
     for _, node := range tx.nodes {
         // if the type parameter is not null and the current node type does not equal the type parameter, do not add
-        if t != graph.ALL && node.Type != t {
+        if t != graph.NOOP && node.Type != t {
             continue
         }
 
@@ -316,12 +314,14 @@ func (tx *TxGraph) Children(name string) set.Set {
     }
 
     // remove and deassigns
-    for _, txCmd := range tx.cmds["deassign"] {
-        if txCmd.(*txGraphDeassignCommitter).parent != name {
-            continue
-        }
+    for _, txCmd := range tx.cmds {
+        if txCmd.Id() == "deassign" {
+            if txCmd.(*txGraphDeassignCommitter).parent != name {
+                continue
+            }
 
-        children.Remove(txCmd.(*txGraphDeassignCommitter).child)
+            children.Remove(txCmd.(*txGraphDeassignCommitter).child)
+        }
     }
 
     return children
@@ -339,12 +339,14 @@ func (tx *TxGraph) Parents(name string) set.Set {
         parents.AddFrom(v)
     }
     // remove and deassigns
-    for _, txCmd := range tx.cmds["deassign"] {
-        if txCmd.(*txGraphDeassignCommitter).child != name {
-            continue
-        }
+    for _, txCmd := range tx.cmds {
+        if txCmd.Id() == "deassign" {
+            if txCmd.(*txGraphDeassignCommitter).child != name {
+                continue
+            }
 
-        parents.Remove(txCmd.(*txGraphDeassignCommitter).child)
+            parents.Remove(txCmd.(*txGraphDeassignCommitter).child)
+        }
     }
 
     return parents
@@ -357,17 +359,13 @@ func (tx *TxGraph) Assign(child, parent string) error {
     }
     parents.Add(parent)
     tx.assignments[child] = parents
-    _, found := tx.cmds["assign"]
-    if !found {
-        tx.cmds["assign"] = make([]txGraphCommitter, 0)
-        tx.idx = append(tx.idx, "assign")
-    }
 
-    tx.cmds["assign"] = append(tx.cmds["assign"], &txGraphCommitterImpl{
+    tx.cmds = append(tx.cmds, &txGraphCommitterImpl{
         c: func() error {
             return tx.targetGraph.Assign(child, parent)
-        }},
-    )
+        },
+        id: "assign",
+    })
 
     return nil
 }
@@ -379,13 +377,8 @@ func (tx *TxGraph) Deassign(child, parent string) error {
     }
     parents.Remove(parent)
     tx.assignments[child] = parents
-    _, found := tx.cmds["deassign"]
-    if !found {
-        tx.cmds["deassign"] = make([]txGraphCommitter, 0)
-        tx.idx = append(tx.idx, "deassign")
-    }
 
-    tx.cmds["deassign"] = append(tx.cmds["deassign"], &txGraphDeassignCommitter{
+    tx.cmds = append(tx.cmds, &txGraphDeassignCommitter{
         c: func() error {
             return tx.targetGraph.Deassign(child, parent)
         },
@@ -413,16 +406,11 @@ func (tx *TxGraph) Associate(ua, target string, ops operations.OperationSet) err
     assocs[target] = ops
     tx.associations[ua] = assocs
 
-    _, found := tx.cmds["associate"]
-    if !found {
-        tx.cmds["associate"] = make([]txGraphCommitter, 0)
-        tx.idx = append(tx.idx, "associate")
-    }
-
-    tx.cmds["associate"] = append(tx.cmds["associate"], &txGraphCommitterImpl{
+    tx.cmds = append(tx.cmds, &txGraphCommitterImpl{
         c: func() error {
             return tx.targetGraph.Associate(ua, target, ops)
         },
+        id: "associate",
     })
 
     return nil
@@ -435,13 +423,8 @@ func (tx *TxGraph) Dissociate(ua, target string) error {
     }
     delete(assocs, target)
     tx.associations[ua] = assocs
-    _, found := tx.cmds["dissociate"]
-    if !found {
-        tx.cmds["dissociate"] = make([]txGraphCommitter, 0)
-        tx.idx = append(tx.idx, "dissociate")
-    }
 
-    tx.cmds["dissociate"] = append(tx.cmds["dissociate"], &txGraphDissociateCommitter{
+    tx.cmds = append(tx.cmds, &txGraphDissociateCommitter{
         c: func() error {
             // assocs, err := tx.targetGraph.SourceAssociations(ua)
             // if err != nil {
@@ -470,12 +453,14 @@ func (tx *TxGraph) SourceAssociations(source string) (map[string]operations.Oper
     }
 
     // remove any dissociates
-    for _, txCmd := range tx.cmds["dissociate"] {
-        if txCmd.(*txGraphDissociateCommitter).ua != source {
-            continue
-        }
+    for _, txCmd := range tx.cmds {
+        if txCmd.Id() == "dissociate" {
+            if txCmd.(*txGraphDissociateCommitter).ua != source {
+                continue
+            }
 
-        delete(sourceAssociations, txCmd.(*txGraphDissociateCommitter).target)
+            delete(sourceAssociations, txCmd.(*txGraphDissociateCommitter).target)
+        }
     }
 
     return sourceAssociations, nil
@@ -504,12 +489,14 @@ func (tx *TxGraph) TargetAssociations(target string) (map[string]operations.Oper
     }
 
     // remove any dissociates
-    for _, txCmd := range tx.cmds["dissociate"] {
-        if txCmd.(*txGraphDissociateCommitter).ua != target {
-            continue
-        }
+    for _, txCmd := range tx.cmds {
+        if txCmd.Id() == "dissociate" {
+            if txCmd.(*txGraphDissociateCommitter).ua != target {
+                continue
+            }
 
-        delete(targetAssociations, txCmd.(*txGraphDissociateCommitter).target)
+            delete(targetAssociations, txCmd.(*txGraphDissociateCommitter).target)
+        }
     }
 
     return targetAssociations, nil
@@ -517,12 +504,10 @@ func (tx *TxGraph) TargetAssociations(target string) (map[string]operations.Oper
 
 func (tx *TxGraph) Commit() (err error) {
     tx.Lock()
-    for _, v := range tx.idx {
-        for _, txCmd := range tx.cmds[v] {
-            f := txCmd.Committer()
-            if err = f(); err != nil {
-                return
-            }
+    for _, txCmd := range tx.cmds {
+        f := txCmd.Committer()
+        if err = f(); err != nil {
+            return
         }
     }
     tx.Unlock()
