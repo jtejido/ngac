@@ -3,9 +3,6 @@ package graph_test
 import (
 	"github.com/jtejido/ngac/operations"
 	"github.com/jtejido/ngac/pip/graph"
-	"math/rand"
-	"runtime"
-	"sync"
 	"testing"
 )
 
@@ -384,49 +381,5 @@ func TestNode(t *testing.T) {
 
 	if n.Type != graph.PC {
 		t.Fatalf("incorrect node type")
-	}
-}
-
-const (
-	N      = 1000
-	strLen = 10
-)
-
-func randomString(len int) string {
-	bytes := make([]byte, len)
-	for i := 0; i < len; i++ {
-		bytes[i] = byte(randomInt(65, 90))
-	}
-	return string(bytes)
-}
-
-func randomInt(min, max int) int {
-	return min + rand.Intn(max-min)
-}
-
-func TestAddGetConcurrent(t *testing.T) {
-	pros := make([]string, N)
-	for i := 0; i < N; i++ {
-		pros[i] = randomString(strLen)
-	}
-	runtime.GOMAXPROCS(2)
-
-	g := graph.NewMemGraph()
-	pc, _ := g.CreatePolicyClass("pc", nil)
-	var wg sync.WaitGroup
-	wg.Add(N)
-	for i := 0; i < N; i++ {
-		go func(i int) {
-			g.CreateNode(pros[i], graph.OA, graph.ToProperties(graph.PropertyPair{"namespace", "test"}), pc.Name)
-			wg.Done()
-		}(i)
-	}
-
-	wg.Wait()
-	for i := 0; i < N; i++ {
-		node, _ := g.Node(pros[i])
-		if node == nil {
-			t.Errorf("Set is missing element: %v", i)
-		}
 	}
 }

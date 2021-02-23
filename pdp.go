@@ -61,8 +61,8 @@ func (p *PDP) WithUser(userCtx context.Context) *WithUser {
 	return newWithUser(userCtx, p.pap, p.epp, p.decider, p.auditor)
 }
 
-func newWithUser(userCtx context.Context, p common.FunctionalEntity, e *EPP, d decider.Decider, a audit.Auditor) *WithUser {
-	return &WithUser{userCtx, p, e, d, a, NewGraphService(userCtx, p, e, d, a), NewProhibitionsService(userCtx, p, e, d, a), NewObligationsService(userCtx, p, e, d, a)}
+func newWithUser(u context.Context, p common.FunctionalEntity, e *EPP, d decider.Decider, a audit.Auditor) *WithUser {
+	return &WithUser{u, p, e, d, a, NewGraphService(u, p, e, d, a), NewProhibitionsService(u, p, e, d, a), NewObligationsService(u, p, e, d, a)}
 }
 
 func (wu *WithUser) Graph() graph.Graph {
