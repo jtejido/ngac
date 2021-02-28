@@ -18,4 +18,4 @@ EPP shall be a PubSub hub model.
 
 Obligation file will be json (following the original's json schema) as golang don't have yaml official support (and third party libs shall be avoided if possible) in their toolchain.
 
-Neo4J and MemGraph support - since both uses Cypher. (DAO for different GraphDB had to be implemented)
+Neo4J (Persisted) and MemGraph (In-memory) support - since both uses Cypher. (DAO for different GraphDB had to be implemented)
