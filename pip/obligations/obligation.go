@@ -480,7 +480,9 @@ func (evr *EvrNode) UnmarshalJSON(b []byte) error {
 		}
 
 		return nil
-	} else if v, ok := raw["name"]; ok {
+	}
+
+	if v, ok := raw["name"]; ok {
 		if len(v.(string)) == 0 {
 			return fmt.Errorf("name cannot be empty")
 		}
@@ -492,6 +494,8 @@ func (evr *EvrNode) UnmarshalJSON(b []byte) error {
 			}
 
 			evr.Type = v.(string)
+		} else {
+			return fmt.Errorf("type cannot be empty")
 		}
 
 		return nil
