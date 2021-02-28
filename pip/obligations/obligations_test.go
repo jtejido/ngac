@@ -34,12 +34,12 @@ func validateSchema(t *testing.T, schema, file string) {
 }
 
 func TestLabel(t *testing.T) {
-	validateSchema(t, "../../api/obligations.json", "test.json")
+	validateSchema(t, "../../api/obligations.json", "../../test/test_event.json")
 
 	var b Obligation
-	yamlFile, err := ioutil.ReadFile("test.json")
+	yamlFile, err := ioutil.ReadFile("../../test/test_event.json")
 	if err != nil {
-		t.Fatal("no yaml file found")
+		t.Fatal("no json file found")
 	}
 	err = json.Unmarshal(yamlFile, &b)
 
