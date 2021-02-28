@@ -6,7 +6,10 @@ import (
 	"github.com/jtejido/ngac/pkg/operations"
 	"github.com/jtejido/ngac/pkg/pdp"
 	"github.com/jtejido/ngac/pkg/pip/graph"
+	"sync"
 )
+
+var mu *sync.Mutex
 
 var (
 	rbac_pc_name      = "RBAC"
@@ -37,6 +40,7 @@ func PCNode() *graph.Node {
 type RBAC struct{}
 
 func New() *RBAC {
+	mu = new(sync.Mutex)
 	return new(RBAC)
 }
 
@@ -204,6 +208,7 @@ func (policy *RBAC) RolePermissions(p *pdp.PDP, superUserContext context.Context
 type pair = graph.PropertyPair
 
 func checkAndCreateRBACNode(g graph.Graph, name string, t graph.NodeType) (RBAC *graph.Node, err error) {
+
 	if !g.Exists(name) {
 		if t == graph.PC {
 			return g.CreatePolicyClass(name, graph.ToProperties(pair{"ngac_type", "RBAC"}))
@@ -217,6 +222,8 @@ func checkAndCreateRBACNode(g graph.Graph, name string, t graph.NodeType) (RBAC 
 		}
 
 		// add ngac_type=RBAC to properties
+		mu.Lock()
+		defer mu.Unlock()
 		typeValue, ok := RBAC.Properties["ngac_type"]
 		if !ok {
 			RBAC.Properties["ngac_type"] = "RBAC"
