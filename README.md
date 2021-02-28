@@ -16,7 +16,7 @@ At the moment, it's translated verbatim. Once all functions are translated, re-f
 
 EPP shall be a PubSub hub model.
 
-Obligation - file will be json (following the original's json schema) as golang don't have yaml official support (and third party libs shall be avoided if possible but tags shall be made ready) in their toolchain.
+Obligation Unmarshallers - file will be json (following the original's json schema).
 
 Neo4J (Persisted) and MemGraph (In-memory) support - since both uses Cypher. (DAO for different GraphDB had to be implemented)
 
