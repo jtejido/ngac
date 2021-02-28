@@ -1,0 +1,39 @@
+{
+  "label": "event test",
+  "rules": [
+    {
+    "label": "u1 assign to",
+    "event": {
+      "subject": {
+        "user": "u1"
+      },
+      "operations": ["assign to"],
+      "target": {
+        "policyElements": [{
+          "name": "oa1",
+          "type": "OA"
+        }]
+      }
+    },
+    "response": {
+      "actions": [{
+        "function": {
+          "name": "create_node",
+          "args": [
+            "pc1",
+            "PC",
+            "u1 assign to success",
+            "OA",
+            {
+              "function": {
+                "name": "to_props",
+                "args": ["prop1=val1"]
+              }
+            }
+          ]
+        }
+      }]
+    }
+  }
+ ]
+}

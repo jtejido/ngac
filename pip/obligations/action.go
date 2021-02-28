@@ -1,6 +1,8 @@
 package obligations
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/jtejido/ngac/pip/graph"
 )
 
@@ -9,6 +11,7 @@ type Action interface {
 	SetCondition(condition *Condition)
 	NegatedCondition() *NegatedCondition
 	SetNegatedCondition(*NegatedCondition)
+	UnmarshalJSON(b []byte) error
 }
 
 type action struct {
@@ -48,6 +51,11 @@ func NewAssignAction() *AssignAction {
 	return ans
 }
 
+func (a *AssignAction) UnmarshalJSON(b []byte) error {
+
+	return nil
+}
+
 type ActionAssignment struct {
 	What, Where *EvrNode
 }
@@ -66,6 +74,40 @@ func NewCreateAction() *CreateAction {
 	return ans
 }
 
+func (a *CreateAction) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	json.Unmarshal(b, &raw)
+	if v, ok := raw["condition"]; ok {
+		a.condition = new(Condition)
+		b, err := json.Marshal(v.(interface{}))
+		if err != nil {
+			return err
+		}
+		err = a.condition.UnmarshalJSON(b)
+		if err != nil {
+			return err
+		}
+	}
+
+	if v, ok := raw["not_condition"]; ok {
+		a.negatedCondition = new(NegatedCondition)
+		b, err := json.Marshal(v.(interface{}))
+		if err != nil {
+			return err
+		}
+		err = a.negatedCondition.UnmarshalJSON(b)
+		if err != nil {
+			return err
+		}
+	}
+
+	// if v, ok := raw["create"]; ok {
+	// 	// TO-DO
+	// }
+
+	return fmt.Errorf("invalid action received")
+}
+
 type ActionCreateNode struct {
 	What, Where *EvrNode
 }
@@ -78,6 +120,11 @@ type DeleteAction struct {
 	Prohibitions, Rules []string
 }
 
+func (a *DeleteAction) UnmarshalJSON(b []byte) error {
+
+	return nil
+}
+
 // DenyAction.java
 type DenyAction struct {
 	action
@@ -85,6 +132,11 @@ type DenyAction struct {
 	Subject    *EvrNode
 	Operations []string
 	Target     *ActionTarget
+}
+
+func (a *DenyAction) UnmarshalJSON(b []byte) error {
+
+	return nil
 }
 
 type ActionTarget struct {
@@ -123,6 +175,50 @@ func NewFunctionAction(function *Function) *FunctionAction {
 	return ans
 }
 
+func (a *FunctionAction) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	json.Unmarshal(b, &raw)
+	if v, ok := raw["condition"]; ok {
+		a.condition = new(Condition)
+		b, err := json.Marshal(v.(interface{}))
+		if err != nil {
+			return err
+		}
+		err = a.condition.UnmarshalJSON(b)
+		if err != nil {
+			return err
+		}
+	}
+
+	if v, ok := raw["not_condition"]; ok {
+		a.negatedCondition = new(NegatedCondition)
+		b, err := json.Marshal(v.(interface{}))
+		if err != nil {
+			return err
+		}
+		err = a.negatedCondition.UnmarshalJSON(b)
+		if err != nil {
+			return err
+		}
+	}
+
+	if v, ok := raw["function"]; ok {
+		b, err := json.Marshal(v)
+		if err != nil {
+			return err
+		}
+		a.Function = new(Function)
+		err = a.Function.UnmarshalJSON(b)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	return fmt.Errorf("invalid action received")
+}
+
 type GrantAction struct {
 	action
 	Subject    *EvrNode
@@ -134,4 +230,9 @@ func NewGrantAction() *GrantAction {
 	ans := new(GrantAction)
 	ans.Operations = make([]string, 0)
 	return ans
+}
+
+func (a *GrantAction) UnmarshalJSON(b []byte) error {
+
+	return nil
 }
