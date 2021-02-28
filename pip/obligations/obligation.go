@@ -10,7 +10,7 @@ type Obligation struct {
 	User    string
 	Enabled bool
 	Label   string  `json:"label" yaml:"label"`
-	Rules   []*Rule `json:"rules" yaml:"rules"`
+	Rules   []*Rule `json:"rules, omitempty" yaml:"rules, omitempty"`
 	Source  string
 }
 
@@ -27,6 +27,8 @@ func (ob *Obligation) UnmarshalJSON(b []byte) error {
 		}
 
 		ob.Label = v.(string)
+	} else {
+		return fmt.Errorf("no label specified for obligation")
 	}
 
 	if v, ok := raw["rules"]; ok {
@@ -66,6 +68,8 @@ func (r *Rule) UnmarshalJSON(b []byte) error {
 		}
 
 		r.Label = v.(string)
+	} else {
+		return fmt.Errorf("no label provided for rule")
 	}
 
 	if v, ok := raw["event"]; ok {
@@ -79,7 +83,7 @@ func (r *Rule) UnmarshalJSON(b []byte) error {
 			return err
 		}
 	} else {
-		return fmt.Errorf("no event provided")
+		return fmt.Errorf("no event provided for rule")
 	}
 
 	if v, ok := raw["response"]; ok {
@@ -93,7 +97,7 @@ func (r *Rule) UnmarshalJSON(b []byte) error {
 			return err
 		}
 	} else {
-		return fmt.Errorf("no response provided")
+		return fmt.Errorf("no response provided for rule")
 	}
 
 	return nil
@@ -104,10 +108,10 @@ func NewRule() *Rule {
 }
 
 type EventPattern struct {
-	Subject     *Subject     `json:"subject" yaml:"subject"`
-	PolicyClass *PolicyClass `json:"policyClass" yaml:"policyClass"`
-	Operations  []string     `json:"operations" yaml:"operations"`
-	Target      *Target      `json:"target" yaml:"target"`
+	Subject     *Subject     `json:"subject, omitempty" yaml:"subject, omitempty"`
+	PolicyClass *PolicyClass `json:"policyClass, omitempty" yaml:"policyClass, omitempty"`
+	Operations  []string     `json:"operations, omitempty" yaml:"operations, omitempty"`
+	Target      *Target      `json:"target, omitempty" yaml:"target, omitempty"`
 }
 
 func (e *EventPattern) UnmarshalJSON(b []byte) error {
@@ -161,9 +165,9 @@ func (e *EventPattern) UnmarshalJSON(b []byte) error {
 }
 
 type ResponsePattern struct {
-	Condition        *Condition        `json:"condition" yaml:"condition"`
-	NegatedCondition *NegatedCondition `json:"not_condition" yaml:"condition!"`
-	Actions          []Action          `json:"actions" yaml:"actions"`
+	Condition        *Condition        `json:"condition, omitempty" yaml:"condition, omitempty"`
+	NegatedCondition *NegatedCondition `json:"not_condition, omitempty" yaml:"condition!, omitempty"`
+	Actions          []Action          `json:"actions, omitempty" yaml:"actions, omitempty"`
 }
 
 func NewResponsePattern() *ResponsePattern {
@@ -305,26 +309,22 @@ func (s *Subject) UnmarshalJSON(b []byte) error {
 	json.Unmarshal(b, &raw)
 
 	if v, ok := raw["user"]; ok {
-		a := NewSubject(v.(string))
-		*s = *a
+		s.User = v.(string)
 		return nil
-	}
-
-	if v, ok := raw["anyUser"]; ok {
+	} else if v, ok = raw["anyUser"]; ok {
 		s.AnyUser = make([]string, len(v.([]interface{})))
 		for i, u := range v.([]interface{}) {
 			s.AnyUser[i] = u.(string)
 		}
 		return nil
-	}
-
-	if v, ok := raw["user"]; ok {
-		a := NewSubjectFromProcess(NewEvrProcess(v.(string)))
-		*s = *a
+	} else if v, ok = raw["user"]; ok {
+		s.Process = NewEvrProcess(v.(string))
 		return nil
+	} else {
+		return fmt.Errorf("invalid subject specification")
 	}
 
-	return fmt.Errorf("invalid subject specification")
+	return nil
 }
 
 type EvrProcess struct {
@@ -480,9 +480,7 @@ func (evr *EvrNode) UnmarshalJSON(b []byte) error {
 		}
 
 		return nil
-	}
-
-	if v, ok := raw["name"]; ok {
+	} else if v, ok := raw["name"]; ok {
 		if len(v.(string)) == 0 {
 			return fmt.Errorf("name cannot be empty")
 		}
@@ -495,10 +493,11 @@ func (evr *EvrNode) UnmarshalJSON(b []byte) error {
 
 			evr.Type = v.(string)
 		}
+
+		return nil
 	}
 
-	// should there be an error when no target is specified?
-	return nil
+	return fmt.Errorf("invalid EVR node")
 }
 
 type Containers struct {

@@ -47,7 +47,6 @@ func (f *Function) UnmarshalJSON(b []byte) error {
 			}
 
 		}
-
 	}
 
 	a := NewFunction(name, args)
