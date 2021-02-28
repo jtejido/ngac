@@ -3,7 +3,56 @@ package obligations
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/xeipuuv/gojsonschema"
+	"io/ioutil"
+	"path/filepath"
 )
+
+func validateSchema(schema, file string) error {
+	path, err := filepath.Abs(schema)
+	if err != nil {
+		return err
+	}
+
+	fp, err := filepath.Abs(file)
+	if err != nil {
+		return err
+	}
+	schemaLoader := gojsonschema.NewReferenceLoader("file:///" + path)
+	documentLoader := gojsonschema.NewReferenceLoader("file:///" + fp)
+
+	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
+	if err != nil {
+		return err
+	}
+
+	if !result.Valid() {
+		for _, desc := range result.Errors() {
+			return fmt.Errorf("- %s\n", desc)
+		}
+	}
+
+	return nil
+}
+
+func Parse(user, file string) (*Obligation, error) {
+	obligation := NewObligation(user)
+	obligation.Source = file
+	if err := validateSchema("../../../api/obligations.json", file); err != nil {
+		return nil, err
+	}
+	jsonFile, err := ioutil.ReadFile(file)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(jsonFile, obligation)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return obligation, nil
+}
 
 type Obligation struct {
 	User    string
