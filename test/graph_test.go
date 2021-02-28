@@ -1,6 +1,7 @@
 package ngac
 
 import (
+    . "github.com/jtejido/ngac"
     "github.com/jtejido/ngac/audit"
     "github.com/jtejido/ngac/context"
     "github.com/jtejido/ngac/decider"

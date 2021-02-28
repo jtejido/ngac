@@ -1,10 +1,11 @@
-package ngac
+package service
 
 import (
     "github.com/jtejido/ngac/audit"
     "github.com/jtejido/ngac/common"
     "github.com/jtejido/ngac/context"
     "github.com/jtejido/ngac/decider"
+    "github.com/jtejido/ngac/epp"
     "github.com/jtejido/ngac/guard"
     "github.com/jtejido/ngac/internal/set"
     "github.com/jtejido/ngac/pip/prohibitions"
@@ -17,7 +18,7 @@ type Prohibitions struct {
     guard *guard.Prohibitions
 }
 
-func NewProhibitionsService(userCtx context.Context, p common.FunctionalEntity, e *EPP, d decider.Decider, a audit.Auditor) *Prohibitions {
+func NewProhibitionsService(userCtx context.Context, p common.FunctionalEntity, e epp.EPP, d decider.Decider, a audit.Auditor) *Prohibitions {
     ans := new(Prohibitions)
     ans.userCtx = userCtx
     ans.pap = p

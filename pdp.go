@@ -10,6 +10,7 @@ import (
 	"github.com/jtejido/ngac/pip/obligations"
 	"github.com/jtejido/ngac/pip/prohibitions"
 	"github.com/jtejido/ngac/pip/tx"
+	"github.com/jtejido/ngac/service"
 )
 
 type TokenString string
@@ -62,7 +63,7 @@ func (p *PDP) WithUser(userCtx context.Context) *WithUser {
 }
 
 func newWithUser(u context.Context, p common.FunctionalEntity, e *EPP, d decider.Decider, a audit.Auditor) *WithUser {
-	return &WithUser{u, p, e, d, a, NewGraphService(u, p, e, d, a), NewProhibitionsService(u, p, e, d, a), NewObligationsService(u, p, e, d, a)}
+	return &WithUser{u, p, e, d, a, service.NewGraphService(u, p, e, d, a), service.NewProhibitionsService(u, p, e, d, a), service.NewObligationsService(u, p, e, d, a)}
 }
 
 func (wu *WithUser) Graph() graph.Graph {

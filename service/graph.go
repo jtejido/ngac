@@ -1,4 +1,4 @@
-package ngac
+package service
 
 import (
     "fmt"
@@ -21,7 +21,7 @@ type Graph struct {
     guard *guard.Graph
 }
 
-func NewGraphService(userCtx context.Context, p common.FunctionalEntity, e *EPP, d decider.Decider, a audit.Auditor) *Graph {
+func NewGraphService(userCtx context.Context, p common.FunctionalEntity, e epp.EPP, d decider.Decider, a audit.Auditor) *Graph {
     ans := new(Graph)
     ans.userCtx = userCtx
     ans.pap = p
@@ -123,17 +123,7 @@ func (g *Graph) RemoveNode(name string) {
     if err != nil {
         panic(err)
     }
-    /*        // process the delete event
-              Set<String> parents = graph.getParents(name);
-              for(String parent : parents) {
-                  Node parentNode = graph.getNode(parent);
 
-                  getEPP().processEvent(new DeassignEvent(userCtx, node, parentNode));
-                  getEPP().processEvent(new DeassignFromEvent(userCtx, parentNode, node));
-              }
-
-              // delete the node
-              graph.deleteNode(name);*/
 }
 
 /**

@@ -1,10 +1,11 @@
-package ngac
+package service
 
 import (
 	"github.com/jtejido/ngac/audit"
 	"github.com/jtejido/ngac/common"
 	"github.com/jtejido/ngac/context"
 	"github.com/jtejido/ngac/decider"
+	"github.com/jtejido/ngac/epp"
 	"github.com/jtejido/ngac/pap/policy"
 	"github.com/jtejido/ngac/pip/graph"
 	"github.com/jtejido/ngac/pip/obligations"
@@ -14,7 +15,7 @@ import (
 type Service struct {
 	userCtx     context.Context
 	pap         common.FunctionalEntity
-	epp         *EPP
+	epp         epp.EPP
 	decider     decider.Decider
 	auditor     audit.Auditor
 	superPolicy *policy.SuperPolicy

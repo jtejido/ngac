@@ -8,6 +8,10 @@ import (
 	"github.com/jtejido/ngac/pip/prohibitions"
 )
 
+type EPP interface {
+	ProcessEvent(eventCtx EventContext) error
+}
+
 func Apply(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations, functionEvaluator *FunctionEvaluator, eventCtx EventContext, rule *obligations.Rule, obligationLabel string) error {
 	// check the response condition
 	responsePattern := rule.ResponsePattern

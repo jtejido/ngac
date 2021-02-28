@@ -34,7 +34,7 @@ func validateSchema(t *testing.T, schema, file string) {
 }
 
 func TestLabel(t *testing.T) {
-	validateSchema(t, "schema/obligations.json", "test.json")
+	validateSchema(t, "../../api/obligations.json", "test.json")
 
 	var b Obligation
 	yamlFile, err := ioutil.ReadFile("test.json")
