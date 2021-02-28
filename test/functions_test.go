@@ -1,18 +1,18 @@
 package ngac
 
 import (
-    . "github.com/jtejido/ngac"
-    "github.com/jtejido/ngac/audit"
-    "github.com/jtejido/ngac/context"
-    "github.com/jtejido/ngac/decider"
-    "github.com/jtejido/ngac/epp"
     "github.com/jtejido/ngac/internal/set"
-    "github.com/jtejido/ngac/operations"
-    "github.com/jtejido/ngac/pap"
-    "github.com/jtejido/ngac/pip"
-    "github.com/jtejido/ngac/pip/graph"
-    "github.com/jtejido/ngac/pip/obligations"
-    "github.com/jtejido/ngac/pip/prohibitions"
+    "github.com/jtejido/ngac/pkg/context"
+    "github.com/jtejido/ngac/pkg/epp"
+    "github.com/jtejido/ngac/pkg/operations"
+    "github.com/jtejido/ngac/pkg/pap"
+    . "github.com/jtejido/ngac/pkg/pdp"
+    "github.com/jtejido/ngac/pkg/pdp/audit"
+    "github.com/jtejido/ngac/pkg/pdp/decider"
+    "github.com/jtejido/ngac/pkg/pip"
+    "github.com/jtejido/ngac/pkg/pip/graph"
+    "github.com/jtejido/ngac/pkg/pip/obligations"
+    "github.com/jtejido/ngac/pkg/pip/prohibitions"
     "testing"
 )
 
