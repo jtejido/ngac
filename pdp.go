@@ -13,8 +13,6 @@ import (
 	"github.com/jtejido/ngac/service"
 )
 
-type TokenString string
-
 type PDP struct {
 	epp     *EPP
 	pap     common.FunctionalEntity
