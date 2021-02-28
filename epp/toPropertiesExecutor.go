@@ -22,7 +22,7 @@ func (f *ToPropertiesExecutor) Exec(g graph.Graph, p prohibitions.Prohibitions, 
         value := arg.Value
         tokens := strings.Split(value, "=")
         if len(tokens) == 2 {
-            props.Add(tokens[0], tokens[1])
+            props[tokens[0]] = tokens[1]
         }
     }
 

@@ -63,7 +63,7 @@ func (sp *SuperPolicy) Configure(gr graph.Graph) (err error) {
         if sp.superPC, err = gr.Node("super_pc"); err != nil {
             return
         }
-        sp.superPC.Properties.Add(graph.REP_PROPERTY, superPCRep)
+        sp.superPC.Properties[graph.REP_PROPERTY] = superPCRep
         if err = gr.UpdateNode(sp.superPC.Name, sp.superPC.Properties); err != nil {
             return
         }
@@ -207,9 +207,9 @@ func (sp *SuperPolicy) configurePolicyClasses(gr graph.Graph) error {
             return err
         }
         props := node.Properties
-        props.Add("default_ua", defaultUA)
-        props.Add("default_oa", defaultOA)
-        props.Add(graph.REP_PROPERTY, rep)
+        props["default_ua"] = defaultUA
+        props["default_oa"] = defaultOA
+        props[graph.REP_PROPERTY] = rep
         if err := gr.UpdateNode(pc, props); err != nil {
             return err
         }

@@ -35,26 +35,26 @@ func TestPolicyClassReps(t *testing.T) {
     if err != nil {
         t.Fatalf("%s", err)
     }
-    defUA, ok := test.Properties.Get("default_ua")
+    defUA, ok := test.Properties["default_ua"]
     if !ok {
         t.Fatalf("default_ua should be present")
     }
-    defOA, ok := test.Properties.Get("default_oa")
+    defOA, ok := test.Properties["default_oa"]
     if !ok {
         t.Fatalf("default_oa should be present")
     }
-    repProp, ok := test.Properties.Get(graph.REP_PROPERTY)
+    repProp, ok := test.Properties[graph.REP_PROPERTY]
     if !ok {
         t.Fatalf("%s should be present", graph.REP_PROPERTY)
     }
 
-    if !g.Exists(defUA.(string)) {
+    if !g.Exists(defUA) {
         t.Errorf("default_ua should exist")
     }
-    if !g.Exists(defOA.(string)) {
+    if !g.Exists(defOA) {
         t.Errorf("default_oa should exist")
     }
-    if !g.Exists(repProp.(string)) {
+    if !g.Exists(repProp) {
         t.Errorf("%s should exist", graph.REP_PROPERTY)
     }
 }

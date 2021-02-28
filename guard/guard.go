@@ -32,12 +32,12 @@ func (g *Guard) hasPermissions(userCtx context.Context, target string, permissio
 		return false, err
 	}
 	if node.Type == graph.PC {
-		t, found := node.Properties.Get(graph.REP_PROPERTY)
+		t, found := node.Properties[graph.REP_PROPERTY]
 		if !found {
 			return false, fmt.Errorf("unable to check permissions for policy class %s, rep property not set", node.Name)
 		}
 
-		target = t.(string)
+		target = t
 	}
 
 	// check for permissions

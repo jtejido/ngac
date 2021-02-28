@@ -42,7 +42,7 @@ func TestUpdateNode(t *testing.T) {
 
 	n, _ := g.Node(node.Name)
 
-	if v, _ := n.Properties.Get("newKey"); v != "newValue" {
+	if v, _ := n.Properties["newKey"]; v != "newValue" {
 		t.Fatalf("failed to update properties")
 	}
 }

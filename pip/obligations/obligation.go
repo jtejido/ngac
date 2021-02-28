@@ -3,7 +3,6 @@ package obligations
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jtejido/ngac/pip/graph"
 )
 
 type Obligation struct {
@@ -312,12 +311,16 @@ func (s *Subject) UnmarshalJSON(b []byte) error {
 		s.User = v.(string)
 		return nil
 	} else if v, ok = raw["anyUser"]; ok {
+		if v == nil {
+			s.AnyUser = make([]string, 0)
+			return nil
+		}
 		s.AnyUser = make([]string, len(v.([]interface{})))
 		for i, u := range v.([]interface{}) {
 			s.AnyUser[i] = u.(string)
 		}
 		return nil
-	} else if v, ok = raw["user"]; ok {
+	} else if v, ok = raw["process"]; ok {
 		s.Process = NewEvrProcess(v.(string))
 		return nil
 	} else {
@@ -360,6 +363,9 @@ func NewPolicyClass() *PolicyClass {
 func (pc *PolicyClass) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	json.Unmarshal(b, &raw)
+	if len(raw) > 1 {
+		return fmt.Errorf("expected one of (anyOf, eachOf)")
+	}
 
 	if v, ok := raw["anyOf"]; ok {
 		pc.AnyOf = make([]string, len(v.([]interface{})))
@@ -367,19 +373,15 @@ func (pc *PolicyClass) UnmarshalJSON(b []byte) error {
 			pc.AnyOf[i] = u.(string)
 		}
 
-		return nil
-	}
-
-	if v, ok := raw["eachOf"]; ok {
+	} else if v, ok := raw["eachOf"]; ok {
 		pc.EachOf = make([]string, len(v.([]interface{})))
 		for i, u := range v.([]interface{}) {
 			pc.EachOf[i] = u.(string)
 		}
 
-		return nil
 	}
 
-	return fmt.Errorf("expected one of (anyOf, eachOf)")
+	return nil
 }
 
 type Target struct {
@@ -405,9 +407,7 @@ func (t *Target) UnmarshalJSON(b []byte) error {
 			}
 		}
 		return nil
-	}
-
-	if v, ok := raw["containers"]; ok {
+	} else if v, ok := raw["containers"]; ok {
 		t.Containers = make([]*EvrNode, len(v.([]interface{})))
 		for i, _ := range v.([]interface{}) {
 			b, err := json.Marshal(v.([]interface{})[i])
@@ -431,7 +431,7 @@ func (t *Target) UnmarshalJSON(b []byte) error {
 type EvrNode struct {
 	Name       string `json:"name" yaml:"name"`
 	Type       string `json:"type" yaml:"type"`
-	Properties graph.PropertyMap
+	Properties map[string]string
 	Function   *Function `json:"function" yaml:"function"`
 	Process    *EvrProcess
 }
@@ -442,7 +442,7 @@ func NewEvrNodeFromFunction(function *Function) *EvrNode {
 	}
 }
 
-func NewEvrNode(name, t string, properties graph.PropertyMap) *EvrNode {
+func NewEvrNode(name, t string, properties map[string]string) *EvrNode {
 	return &EvrNode{
 		Name:       name,
 		Type:       t,
@@ -480,23 +480,19 @@ func (evr *EvrNode) UnmarshalJSON(b []byte) error {
 		}
 
 		return nil
-	}
-
-	if v, ok := raw["name"]; ok {
-		if len(v.(string)) == 0 {
+	} else {
+		v, _ := raw["name"]
+		if len(v.(string)) == 0 || v == nil {
 			return fmt.Errorf("name cannot be empty")
 		}
 
 		evr.Name = v.(string)
-		if v, ok = raw["type"]; ok {
-			if len(v.(string)) == 0 {
-				return fmt.Errorf("type cannot be empty")
-			}
-
-			evr.Type = v.(string)
-		} else {
+		v, _ = raw["type"]
+		if len(v.(string)) == 0 || v == nil {
 			return fmt.Errorf("type cannot be empty")
 		}
+
+		evr.Type = v.(string)
 
 		return nil
 	}

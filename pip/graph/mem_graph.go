@@ -2,7 +2,6 @@ package graph
 
 import (
 	"fmt"
-	"github.com/jtejido/ngac/internal/omap"
 	"github.com/jtejido/ngac/internal/set"
 	"github.com/jtejido/ngac/operations"
 )
@@ -266,7 +265,7 @@ func (mg *MemGraph) NodeFromDetails(t NodeType, properties PropertyMap) (*Node, 
 
 func (mg *MemGraph) Search(t NodeType, properties PropertyMap) set.Set {
 	if properties == nil {
-		properties = omap.NewOrderedMap().(PropertyMap)
+		properties = NewPropertyMap()
 	}
 
 	results := set.NewSet()
@@ -277,10 +276,8 @@ func (mg *MemGraph) Search(t NodeType, properties PropertyMap) set.Set {
 		}
 
 		match := true
-		for _, key := range properties.Keys() {
-			checkValue, _ := properties.Get(key)
-			foundValue, _ := node.Properties.Get(key)
-			if checkValue != foundValue {
+		for k, v := range properties {
+			if node.Properties[k] != v {
 				match = false
 			}
 		}

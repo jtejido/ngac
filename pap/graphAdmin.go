@@ -3,7 +3,6 @@ package pap
 import (
 	"fmt"
 	"github.com/jtejido/ngac/common"
-	"github.com/jtejido/ngac/internal/omap"
 	"github.com/jtejido/ngac/internal/set"
 	"github.com/jtejido/ngac/operations"
 	"github.com/jtejido/ngac/pap/policy"
@@ -38,16 +37,18 @@ func (ga *GraphAdmin) PolicyClassDefault(pcName string, t graph.NodeType) string
 }
 
 func (ga *GraphAdmin) CreatePolicyClass(name string, properties graph.PropertyMap) (*graph.Node, error) {
-	nodeProps := omap.NewOrderedMap()
+	nodeProps := graph.NewPropertyMap()
 	if properties != nil {
-		nodeProps.AddMap(properties)
+		nodeProps = properties
 	}
 
 	rep := name + "_rep"
 	defaultUA := ga.PolicyClassDefault(name, graph.UA)
 	defaultOA := ga.PolicyClassDefault(name, graph.OA)
 
-	nodeProps.AddMap(graph.ToProperties(pair{"default_ua", defaultUA}, pair{"default_oa", defaultOA}, pair{graph.REP_PROPERTY, rep}))
+	nodeProps["default_ua"] = defaultUA
+	nodeProps["default_oa"] = defaultOA
+	nodeProps[graph.REP_PROPERTY] = rep
 
 	pcNode := graph.NewNode()
 
@@ -110,13 +111,6 @@ func (ga *GraphAdmin) CreatePolicyClass(name string, properties graph.PropertyMa
 func (ga *GraphAdmin) CreateNode(name string, t graph.NodeType, properties graph.PropertyMap, initialParent string, additionalParents ...string) (*graph.Node, error) {
 	if t == graph.PC {
 		return nil, fmt.Errorf("use CreatePolicyClass to create a policy class node")
-	}
-
-	// instantiate the properties map if it's null
-	// if this node is a user, hash the password if present in the properties
-	nodeProps := omap.NewOrderedMap()
-	if properties != nil {
-		nodeProps.AddMap(properties)
 	}
 
 	defaultType := graph.UA

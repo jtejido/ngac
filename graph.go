@@ -107,8 +107,8 @@ func (g *Graph) RemoveNode(name string) {
 
     // if it's a PC, delete the rep
     if node.Type == graph.PC {
-        if v, ok := node.Properties.Get(graph.REP_PROPERTY); ok {
-            g.GraphAdmin().RemoveNode(v.(string))
+        if v, ok := node.Properties[graph.REP_PROPERTY]; ok {
+            g.GraphAdmin().RemoveNode(v)
         }
     }
 

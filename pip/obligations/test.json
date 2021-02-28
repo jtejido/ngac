@@ -34,6 +34,37 @@
         }
       }]
     }
+  },
+  {
+  "label": "anyUser assign",
+    "event": {
+      "subject": {
+        "anyUser": []
+      },
+      "operations": ["assign"],
+      "target": {
+        "policyElements": [{
+            "name": "o1",
+            "type": "O"
+          }]
+      }
+    },
+    "response": {
+      "actions": [{
+         "create": [
+             {
+              "what": {
+                "name": "anyUser assign success",
+                "type":  "OA"
+              },
+              "where": {
+                "name": "oa2",
+                "type": "OA"
+              }
+             }
+         ]
+        }]
+    }
   }
  ]
 }

@@ -276,18 +276,14 @@ func (tx *TxGraph) txSearch(t graph.NodeType, properties graph.PropertyMap) map[
             continue
         }
 
-        add := true
-        for _, key := range properties.Keys() {
-            checkValue, _ := properties.Get(key)
-            foundValue, _ := node.Properties.Get(key)
-            // if the property provided in the search parameters is null or *, continue to the next property
-            if checkValue != foundValue {
-                add = false
-                break
+        match := true
+        for k, v := range properties {
+            if node.Properties[k] != v {
+                match = false
             }
         }
 
-        if add {
+        if match {
             results[node.Name] = graph.NewNodeFromNode(node)
         }
     }

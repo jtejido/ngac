@@ -127,7 +127,7 @@ func TestCreateNodeExecutor(t *testing.T) {
     if n.(*graph.Node).Properties == nil {
         t.Errorf("properties should not be nil")
     }
-    v, ok := n.(*graph.Node).Properties.Get("k")
+    v, ok := n.(*graph.Node).Properties["k"]
     if !ok || v != "v" {
         t.Errorf("v should be present on properties")
     }
@@ -361,18 +361,18 @@ func TestToPropertiesExecutor(t *testing.T) {
     if props == nil {
         t.Errorf("props should not be nil")
     }
-    if props.(graph.PropertyMap).Len() != 3 {
+    if len(props.(graph.PropertyMap)) != 3 {
         t.Errorf("props size should  be 3")
     }
-    v, ok := props.(graph.PropertyMap).Get("k")
+    v, ok := props.(graph.PropertyMap)["k"]
     if !ok || v != "v" {
         t.Errorf("k should be present and should equals v")
     }
-    v, ok = props.(graph.PropertyMap).Get("k1")
+    v, ok = props.(graph.PropertyMap)["k1"]
     if !ok || v != "v1" {
         t.Errorf("k1 should be present and should equals v1")
     }
-    v, ok = props.(graph.PropertyMap).Get("k2")
+    v, ok = props.(graph.PropertyMap)["k2"]
     if !ok || v != "v2" {
         t.Errorf("k2 should be present and should equals v2")
     }

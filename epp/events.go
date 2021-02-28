@@ -218,10 +218,9 @@ func (ctx *eventContext) nodesMatch(evrNode *obligations.EvrNode, node *graph.No
 		return false
 	}
 
-	for _, k := range evrNode.Properties.Keys() {
-		v, _ := evrNode.Properties.Get(k)
-		if val, ok := node.Properties.Get(k); ok {
-			if val.(string) != v {
+	for k, v := range evrNode.Properties {
+		if val, ok := node.Properties[k]; ok {
+			if val != v {
 				return false
 			}
 		} else {

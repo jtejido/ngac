@@ -2,14 +2,26 @@ package graph
 
 import (
 	"fmt"
-	"github.com/jtejido/ngac/internal/omap"
 	"github.com/jtejido/ngac/operations"
 	"strings"
 )
 
 var (
-	validAssignments  = omap.NewOrderedMap()
-	validAssociations = omap.NewOrderedMap()
+	validAssignments = map[NodeType]map[NodeType]bool{
+		PC: {},
+		OA: {OA: true, PC: true},
+		UA: {UA: true, PC: true},
+		O:  {OA: true},
+		U:  {UA: true},
+	}
+
+	validAssociations = map[NodeType]map[NodeType]bool{
+		PC: {},
+		OA: {},
+		UA: {OA: true, UA: true},
+		O:  {},
+		U:  {},
+	}
 )
 
 const (
@@ -45,20 +57,6 @@ const (
 	COLUMN_PROPERTY             = "column"
 	REP_PROPERTY                = "rep"
 )
-
-func init() {
-	validAssociations.Add(PC, []NodeType{})
-	validAssociations.Add(OA, []NodeType{})
-	validAssociations.Add(O, []NodeType{})
-	validAssociations.Add(UA, []NodeType{UA, OA})
-	validAssociations.Add(U, []NodeType{})
-
-	validAssignments.Add(PC, []NodeType{})
-	validAssignments.Add(OA, []NodeType{PC, OA})
-	validAssignments.Add(O, []NodeType{OA})
-	validAssignments.Add(UA, []NodeType{UA, PC})
-	validAssignments.Add(U, []NodeType{UA})
-}
 
 type PropertyPair [2]string
 
@@ -155,16 +153,16 @@ func (n *Node) String() string {
 	return fmt.Sprintf("%s:%s", n.Name, n.Type.String())
 }
 
-type PropertyMap omap.OrderedMap
+type PropertyMap map[string]string
 
 func NewPropertyMap() PropertyMap {
-	return omap.NewOrderedMap()
+	return make(PropertyMap)
 }
 
 func ToProperties(pairs ...PropertyPair) PropertyMap {
-	props := omap.NewOrderedMap()
+	props := NewPropertyMap()
 	for _, p := range pairs {
-		props.Add(p[0], p[1])
+		props[p[0]] = p[1]
 	}
 
 	return props
@@ -209,15 +207,12 @@ func (a *Association) Equals(i interface{}) bool {
 }
 
 func CheckAssociation(uaType, targetType NodeType) error {
-	c, _ := validAssociations.Get(uaType)
-	check := c.([]NodeType)
-	for _, nt := range check {
-		if nt == targetType {
-			return nil
-		}
+	if !validAssociations[uaType][targetType] {
+		return fmt.Errorf("invalid association: %q to %q", uaType.String(), targetType.String())
 	}
 
-	return fmt.Errorf("cannot associate a node of type %s to a node of type %s", uaType.String(), targetType.String())
+	return nil
+
 }
 
 type Assignment struct {
@@ -233,13 +228,9 @@ func (a *Assignment) Equals(i interface{}) bool {
 }
 
 func CheckAssignment(childType, parentType NodeType) error {
-	c, _ := validAssignments.Get(childType)
-	check := c.([]NodeType)
-	for _, nt := range check {
-		if nt == parentType {
-			return nil
-		}
+	if !validAssignments[childType][parentType] {
+		return fmt.Errorf("invalid assignment: %q to %q", childType.String(), parentType.String())
 	}
 
-	return fmt.Errorf("cannot assign a node of type %s to a node of type %s", childType.String(), parentType.String())
+	return nil
 }
