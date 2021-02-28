@@ -9,11 +9,27 @@ import (
 )
 
 var (
-	RBAC_PC_NAME      = "RBAC"
+	rbac_pc_name      = "RBAC"
 	rbac_users_node   *graph.Node
 	rbac_objects_node *graph.Node
 	rbac_pc_node      *graph.Node
 )
+
+func Name() string {
+	return rbac_pc_name
+}
+
+func UsersNode() *graph.Node {
+	return rbac_users_node
+}
+
+func ObjectsNode() *graph.Node {
+	return rbac_objects_node
+}
+
+func PCNode() *graph.Node {
+	return rbac_pc_node
+}
 
 /**
  * Utilities for any operation relating to the RBAC NGAC concept
@@ -43,15 +59,15 @@ func (policy *RBAC) Configure(RBACname string, p *pdp.PDP, superUserContext cont
 	// todo: on-boarding methods.
 
 	if RBACname != "" {
-		RBAC_PC_NAME = RBACname
+		rbac_pc_name = RBACname
 	}
 
 	// DAC PC todo: find default pc node's properties
-	rbac_pc_node, err = policy.checkAndCreateRBACNode(g, RBAC_PC_NAME, graph.PC)
+	rbac_pc_node, err = checkAndCreateRBACNode(g, rbac_pc_name, graph.PC)
 	if err != nil {
 		return
 	}
-	children := g.Children(RBAC_PC_NAME)
+	children := g.Children(rbac_pc_name)
 	for child := range children.Iter() {
 		childNode, err := g.Node(child.(string))
 		if err != nil {
@@ -187,12 +203,12 @@ func (policy *RBAC) RolePermissions(p *pdp.PDP, superUserContext context.Context
  */
 type pair = graph.PropertyPair
 
-func (policy *RBAC) checkAndCreateRBACNode(g graph.Graph, name string, t graph.NodeType) (RBAC *graph.Node, err error) {
+func checkAndCreateRBACNode(g graph.Graph, name string, t graph.NodeType) (RBAC *graph.Node, err error) {
 	if !g.Exists(name) {
 		if t == graph.PC {
 			return g.CreatePolicyClass(name, graph.ToProperties(pair{"ngac_type", "RBAC"}))
 		} else {
-			return g.CreateNode(name, t, graph.ToProperties(pair{"ngac_type", "RBAC"}), RBAC_PC_NAME)
+			return g.CreateNode(name, t, graph.ToProperties(pair{"ngac_type", "RBAC"}), rbac_pc_name)
 		}
 	} else {
 		RBAC, err = g.Node(name)
