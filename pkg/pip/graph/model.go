@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jtejido/ngac/pkg/operations"
 	"strings"
+	"sync"
 )
 
 var (
