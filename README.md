@@ -12,11 +12,11 @@ This is a Golang port of NIST's reference core implementation from Policy Machin
 
 ## TO-DO
 
-At the moment, it's translated verbatim. Once all functions are translated, re-factoring will begin (which includes locking mechanisms on structs/fields, memoizing here and there, and multi-thread stuff when necessary).
+At the moment, it's translated verbatim. Once all functions are translated, re-factoring will begin (which includes locking mechanisms on structs/fields, memoizing here and there, and goroutines when necessary).
 
 EPP shall be a PubSub hub model.
 
-Obligation Unmarshallers - file will be json (following the original's json schema).
+Obligation JSON Unmarshallers - file will be JSON (following the original's JSON schema).
 
 Neo4J (Persisted) and MemGraph (In-memory) support - since both uses Cypher. (DAO for different GraphDB had to be implemented)
 
