@@ -5,7 +5,6 @@ import (
 	"github.com/jtejido/ngac/pkg/operations"
 	"github.com/jtejido/ngac/pkg/pip/graph"
 	"github.com/jtejido/ngac/pkg/pip/prohibitions"
-	"math"
 )
 
 var (
@@ -330,7 +329,7 @@ func (pr *PReviewDecider) processTargetDAG(target string, userCtx *userContext) 
 		return nil
 	}
 
-	ss := graph.NewIDS(pr.graph, math.MaxInt32)
+	ss := graph.NewDFS(pr.graph)
 	n, err := pr.graph.Node(target)
 	if err != nil {
 		return nil, err
