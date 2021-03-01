@@ -159,8 +159,8 @@ func (policy *RBAC) DeleteRole(p *pdp.PDP, superUserContext context.Context, rol
 
 // get user roles
 func (policy *RBAC) UserRoles(p *pdp.PDP, superUserContext context.Context, userName string) (s []string, err error) {
-	policy.mu.Lock()
-	defer policy.mu.Unlock()
+	policy.mu.RLock()
+	defer policy.mu.RUnlock()
 	g := p.WithUser(superUserContext).Graph()
 	if len(userName) == 0 || !g.Exists(userName) {
 		return s, fmt.Errorf("User must exist.")
@@ -198,8 +198,8 @@ func (policy *RBAC) SetRolePermissions(p *pdp.PDP, superUserContext context.Cont
 
 // get_role_permissions
 func (policy *RBAC) RolePermissions(p *pdp.PDP, superUserContext context.Context, roleName string) (map[string]operations.OperationSet, error) {
-	policy.mu.Lock()
-	defer policy.mu.Unlock()
+	policy.mu.RLock()
+	defer policy.mu.RUnlock()
 	g := p.WithUser(superUserContext).Graph()
 	if len(roleName) == 0 || !g.Exists(roleName) {
 		return nil, fmt.Errorf("Role must exist.")
@@ -212,8 +212,7 @@ func (policy *RBAC) RolePermissions(p *pdp.PDP, superUserContext context.Context
 type pair = graph.PropertyPair
 
 func (policy *RBAC) checkAndCreateRBACNode(g graph.Graph, name string, t graph.NodeType) (RBAC *graph.Node, err error) {
-	policy.mu.Lock()
-	defer policy.mu.Unlock()
+
 	if !g.Exists(name) {
 		if t == graph.PC {
 			return g.CreatePolicyClass(name, graph.ToProperties(pair{"ngac_type", "RBAC"}))

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/jtejido/ngac/pkg/operations"
 	"strings"
-	"sync"
 )
 
 var (
@@ -63,16 +62,6 @@ type PropertyPair [2]string
 
 type NodeType int
 
-/**
- * Allowed types of nodes in an NGAC Graph
- * <p>
- * OA = Object Attribute
- * UA = user attribute
- * U = User
- * O = Object
- * PC = policy class
- * OS = Operation Set
- */
 const (
 	NOOP NodeType = iota - 1
 	OA
