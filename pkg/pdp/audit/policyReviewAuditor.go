@@ -5,6 +5,7 @@ import (
     "github.com/jtejido/ngac/internal/set"
     "github.com/jtejido/ngac/pkg/operations"
     "github.com/jtejido/ngac/pkg/pip/graph"
+    "math"
 )
 
 type PReviewAuditor struct {
@@ -270,7 +271,7 @@ func (pa *PReviewAuditor) resolveOperationSet(ops, resourceOps operations.Operat
 }
 
 func (pa *PReviewAuditor) dfs(start *graph.Node) ([]*edgePath, error) {
-    searcher := graph.NewDFS(pa.graph)
+    searcher := graph.NewIDS(pa.graph, math.MaxInt32)
 
     paths := make([]*edgePath, 0)
     propPaths := make(map[string][]*edgePath)

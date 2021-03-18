@@ -1,0 +1,5 @@
+uri: neo4j://localhost:7687
+username: www
+password: password
+database: ngac
+debug: true
