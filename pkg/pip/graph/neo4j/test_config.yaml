@@ -1,0 +1,6 @@
+# THIS FOR UNIT TESTING ONLY, SHOULD BE DESTROYED ONCE DONE
+uri: neo4j://localhost:7687
+username: www
+password: password
+database: ngactest
+debug: true
