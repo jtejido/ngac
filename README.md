@@ -14,7 +14,7 @@ This port supports **Neo4j** as our Persistent Graph. In order to run it, it wil
 
 ## TO-DO
 
-Be reminded that this is **!!NOT FOR PROD!!**
+Be reminded that this is **!!NOT FOR PROD!!** as the APIs are still open for changes.
 
 Obligation JSON Unmarshallers - file will be JSON (following the original's JSON schema).
 
