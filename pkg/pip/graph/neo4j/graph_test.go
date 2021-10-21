@@ -2,13 +2,13 @@ package neo4j
 
 import (
 	"fmt"
-	"github.com/jtejido/ngac/pkg/operations"
-	"github.com/jtejido/ngac/pkg/pip/graph"
+	"ngac/pkg/operations"
+	"ngac/pkg/pip/graph"
 	"os"
 	"testing"
 )
 
-var g *Neo4jGraph = nil
+var g *Graph = nil
 
 func TestCreateNode(t *testing.T) {
 	if err := g.reset(); err != nil {

@@ -3,7 +3,7 @@ package obligations
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jtejido/ngac/pkg/pip/graph"
+	"ngac/pkg/pip/graph"
 )
 
 type Action interface {

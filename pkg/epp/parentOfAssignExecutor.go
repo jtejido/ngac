@@ -2,9 +2,9 @@ package epp
 
 import (
     "fmt"
-    "github.com/jtejido/ngac/pkg/pip/graph"
-    "github.com/jtejido/ngac/pkg/pip/obligations"
-    "github.com/jtejido/ngac/pkg/pip/prohibitions"
+    "ngac/pkg/pip/graph"
+    "ngac/pkg/pip/obligations"
+    "ngac/pkg/pip/prohibitions"
 )
 
 type ParentOfAssignExecutor struct{}

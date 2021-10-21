@@ -2,10 +2,10 @@ package audit
 
 import (
     "fmt"
-    "github.com/jtejido/ngac/internal/set"
-    "github.com/jtejido/ngac/pkg/operations"
-    "github.com/jtejido/ngac/pkg/pip/graph"
     "math"
+    "ngac/internal/set"
+    "ngac/pkg/operations"
+    "ngac/pkg/pip/graph"
 )
 
 type PReviewAuditor struct {

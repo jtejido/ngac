@@ -1,13 +1,13 @@
-package graph_test
+package memory
 
 import (
-	"github.com/jtejido/ngac/pkg/operations"
-	"github.com/jtejido/ngac/pkg/pip/graph"
+	"ngac/pkg/operations"
+	"ngac/pkg/pip/graph"
 	"testing"
 )
 
 func TestCreateNode(t *testing.T) {
-	g := graph.NewMemGraph()
+	g := New()
 
 	pc, _ := g.CreatePolicyClass("pc", nil)
 
@@ -30,7 +30,7 @@ func TestCreateNode(t *testing.T) {
 }
 
 func TestUpdateNode(t *testing.T) {
-	g := graph.NewMemGraph()
+	g := New()
 
 	node, _ := g.CreatePolicyClass("node", graph.ToProperties(graph.PropertyPair{"namespace", "test"}))
 
@@ -48,7 +48,7 @@ func TestUpdateNode(t *testing.T) {
 }
 
 func TestRemoveNode(t *testing.T) {
-	g := graph.NewMemGraph()
+	g := New()
 
 	node, _ := g.CreatePolicyClass("node", graph.ToProperties(graph.PropertyPair{"namespace", "test"}))
 
@@ -64,7 +64,7 @@ func TestRemoveNode(t *testing.T) {
 }
 
 func TestPolicies(t *testing.T) {
-	g := graph.NewMemGraph()
+	g := New()
 
 	g.CreatePolicyClass("node1", nil)
 	g.CreatePolicyClass("node2", nil)
@@ -76,7 +76,7 @@ func TestPolicies(t *testing.T) {
 }
 
 func TestChildren(t *testing.T) {
-	g := graph.NewMemGraph()
+	g := New()
 
 	parentNode, _ := g.CreatePolicyClass("parent", nil)
 
@@ -91,7 +91,7 @@ func TestChildren(t *testing.T) {
 }
 
 func TestParents(t *testing.T) {
-	g := graph.NewMemGraph()
+	g := New()
 
 	parent1Node, _ := g.CreatePolicyClass("parent1", nil)
 	parent2Node, _ := g.CreateNode("parent2", graph.OA, nil, "parent1")
@@ -105,7 +105,7 @@ func TestParents(t *testing.T) {
 }
 
 func TestAssign(t *testing.T) {
-	g := graph.NewMemGraph()
+	g := New()
 
 	parent1Node, _ := g.CreatePolicyClass("parent1", nil)
 	child1Node, _ := g.CreateNode("child1", graph.OA, nil, "parent1")
@@ -131,7 +131,7 @@ func TestAssign(t *testing.T) {
 }
 
 func TestDeassign(t *testing.T) {
-	g := graph.NewMemGraph()
+	g := New()
 
 	parent1Node, _ := g.CreatePolicyClass("parent1", nil)
 	child1Node, _ := g.CreateNode("child1", graph.OA, nil, "parent1")
@@ -157,7 +157,7 @@ func TestDeassign(t *testing.T) {
 }
 
 func TestAssociate(t *testing.T) {
-	g := graph.NewMemGraph()
+	g := New()
 
 	g.CreatePolicyClass("pc", nil)
 	uaNode, _ := g.CreateNode("subject", graph.UA, nil, "pc")
@@ -210,7 +210,7 @@ func TestAssociate(t *testing.T) {
 }
 
 func TestDissociate(t *testing.T) {
-	g := graph.NewMemGraph()
+	g := New()
 
 	g.CreatePolicyClass("pc", nil)
 	uaNode, _ := g.CreateNode("subject", graph.UA, nil, "pc")
@@ -241,7 +241,7 @@ func TestDissociate(t *testing.T) {
 }
 
 func TestSourceAssociations(t *testing.T) {
-	g := graph.NewMemGraph()
+	g := New()
 
 	g.CreatePolicyClass("pc", nil)
 	uaNode, _ := g.CreateNode("subject", graph.UA, nil, "pc")
@@ -269,7 +269,7 @@ func TestSourceAssociations(t *testing.T) {
 }
 
 func TestTargetAssociations(t *testing.T) {
-	g := graph.NewMemGraph()
+	g := New()
 
 	g.CreatePolicyClass("pc", nil)
 	uaNode, _ := g.CreateNode("subject", graph.UA, nil, "pc")
@@ -297,7 +297,7 @@ func TestTargetAssociations(t *testing.T) {
 }
 
 func TestSearch(t *testing.T) {
-	g := graph.NewMemGraph()
+	g := New()
 
 	g.CreatePolicyClass("pc", nil)
 	g.CreateNode("oa1", graph.OA, graph.ToProperties(graph.PropertyPair{"namespace", "test"}), "pc")
@@ -350,7 +350,7 @@ func TestSearch(t *testing.T) {
 }
 
 func TestNodes(t *testing.T) {
-	g := graph.NewMemGraph()
+	g := New()
 
 	g.CreatePolicyClass("pc", nil)
 	g.CreateNode("node1", graph.OA, nil, "pc")
@@ -364,7 +364,7 @@ func TestNodes(t *testing.T) {
 }
 
 func TestNode(t *testing.T) {
-	g := graph.NewMemGraph()
+	g := New()
 	_, err := g.Node("123")
 
 	if err == nil {

@@ -2,12 +2,12 @@ package guard
 
 import (
 	"fmt"
-	"github.com/jtejido/ngac/pkg/common"
-	"github.com/jtejido/ngac/pkg/context"
-	"github.com/jtejido/ngac/pkg/operations"
-	"github.com/jtejido/ngac/pkg/pap/policy"
-	"github.com/jtejido/ngac/pkg/pdp/decider"
-	"github.com/jtejido/ngac/pkg/pip/graph"
+	"ngac/pkg/common"
+	"ngac/pkg/context"
+	"ngac/pkg/operations"
+	"ngac/pkg/pap/policy"
+	"ngac/pkg/pdp/decider"
+	"ngac/pkg/pip/graph"
 )
 
 type Guard struct {

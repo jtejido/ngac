@@ -1,7 +1,7 @@
 package tx
 
 import (
-    "github.com/jtejido/ngac/pkg/pip/prohibitions"
+    "ngac/pkg/pip/prohibitions"
     "sync"
 )
 

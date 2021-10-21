@@ -1,18 +1,19 @@
 package ngac
 
 import (
-    "github.com/jtejido/ngac/internal/set"
-    "github.com/jtejido/ngac/pkg/context"
-    "github.com/jtejido/ngac/pkg/epp"
-    "github.com/jtejido/ngac/pkg/operations"
-    "github.com/jtejido/ngac/pkg/pap"
-    . "github.com/jtejido/ngac/pkg/pdp"
-    "github.com/jtejido/ngac/pkg/pdp/audit"
-    "github.com/jtejido/ngac/pkg/pdp/decider"
-    "github.com/jtejido/ngac/pkg/pip"
-    "github.com/jtejido/ngac/pkg/pip/graph"
-    "github.com/jtejido/ngac/pkg/pip/obligations"
-    "github.com/jtejido/ngac/pkg/pip/prohibitions"
+    "ngac/internal/set"
+    "ngac/pkg/context"
+    "ngac/pkg/epp"
+    "ngac/pkg/operations"
+    "ngac/pkg/pap"
+    . "ngac/pkg/pdp"
+    "ngac/pkg/pdp/audit"
+    "ngac/pkg/pdp/decider"
+    "ngac/pkg/pip"
+    "ngac/pkg/pip/graph"
+    "ngac/pkg/pip/graph/memory"
+    "ngac/pkg/pip/obligations"
+    "ngac/pkg/pip/prohibitions"
     "testing"
 )
 
@@ -23,7 +24,7 @@ type testContext struct {
 
 func testCtx(t *testing.T) testContext {
     ops := operations.NewOperationSet("read", "write", "execute")
-    functionalEntity := pip.NewPIP(graph.NewMemGraph(), prohibitions.NewMemProhibitions(), obligations.NewMemObligations())
+    functionalEntity := pip.NewPIP(memory.New(), prohibitions.NewMemProhibitions(), obligations.NewMemObligations())
     p, err := pap.NewPAP(functionalEntity)
     if err != nil {
         t.Fatalf("%s", err)

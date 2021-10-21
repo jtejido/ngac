@@ -1,14 +1,14 @@
 package service
 
 import (
-    "github.com/jtejido/ngac/internal/set"
-    "github.com/jtejido/ngac/pkg/common"
-    "github.com/jtejido/ngac/pkg/context"
-    "github.com/jtejido/ngac/pkg/epp"
-    "github.com/jtejido/ngac/pkg/pdp/audit"
-    "github.com/jtejido/ngac/pkg/pdp/decider"
-    "github.com/jtejido/ngac/pkg/pdp/service/guard"
-    "github.com/jtejido/ngac/pkg/pip/obligations"
+    "ngac/internal/set"
+    "ngac/pkg/common"
+    "ngac/pkg/context"
+    "ngac/pkg/epp"
+    "ngac/pkg/pdp/audit"
+    "ngac/pkg/pdp/decider"
+    "ngac/pkg/pdp/service/guard"
+    "ngac/pkg/pip/obligations"
 )
 
 var _ obligations.Obligations = &Obligations{}

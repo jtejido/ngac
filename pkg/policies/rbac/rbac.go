@@ -2,10 +2,10 @@ package rbac
 
 import (
 	"fmt"
-	"github.com/jtejido/ngac/pkg/context"
-	"github.com/jtejido/ngac/pkg/operations"
-	"github.com/jtejido/ngac/pkg/pdp"
-	"github.com/jtejido/ngac/pkg/pip/graph"
+	"ngac/pkg/context"
+	"ngac/pkg/operations"
+	"ngac/pkg/pdp"
+	"ngac/pkg/pip/graph"
 	"sync"
 )
 

@@ -3,12 +3,12 @@ package neo4j
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jtejido/ngac/internal/set"
-	"github.com/jtejido/ngac/pkg/config"
-	"github.com/jtejido/ngac/pkg/operations"
-	"github.com/jtejido/ngac/pkg/pip/graph"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"log"
+	"ngac/internal/set"
+	"ngac/pkg/config"
+	"ngac/pkg/operations"
+	"ngac/pkg/pip/graph"
 	"strings"
 )
 
@@ -16,24 +16,24 @@ const (
 	node_not_found_msg = "node %s does not exist in the graph"
 )
 
-type Neo4jGraph struct {
+type Graph struct {
 	config *config.Config
 	driver neo4j.Driver
 }
 
 // Accepts the config file's location for Neo4j
-func New(cfg string) (*Neo4jGraph, error) {
+func New(cfg string) (*Graph, error) {
 	conf, err := config.LoadConfig(cfg)
 	if err != nil {
 		return nil, err
 	}
-	ret := new(Neo4jGraph)
+	ret := new(Graph)
 	ret.config = conf
 	ret.driver = nil
 	return ret, nil
 }
 
-func (g *Neo4jGraph) Start() (err error) {
+func (g *Graph) Start() (err error) {
 	if g.driver == nil {
 		g.driver, err = neo4j.NewDriver(g.config.Uri, neo4j.BasicAuth(g.config.Username, g.config.Password, ""))
 		if err != nil {
@@ -44,11 +44,11 @@ func (g *Neo4jGraph) Start() (err error) {
 	return nil
 }
 
-func (g *Neo4jGraph) Close() (err error) {
+func (g *Graph) Close() (err error) {
 	return g.driver.Close()
 }
 
-func (g *Neo4jGraph) CreatePolicyClass(name string, properties graph.PropertyMap) (*graph.Node, error) {
+func (g *Graph) CreatePolicyClass(name string, properties graph.PropertyMap) (*graph.Node, error) {
 	if len(name) == 0 {
 		return nil, fmt.Errorf("no name was provided when creating a node in the in-memory graph")
 	} else if g.Exists(name) {
@@ -112,7 +112,7 @@ func (g *Neo4jGraph) CreatePolicyClass(name string, properties graph.PropertyMap
 	return result.(*graph.Node), nil
 }
 
-func (g *Neo4jGraph) CreateNode(name string, t graph.NodeType, properties graph.PropertyMap, initialParent string, additionalParents ...string) (*graph.Node, error) {
+func (g *Graph) CreateNode(name string, t graph.NodeType, properties graph.PropertyMap, initialParent string, additionalParents ...string) (*graph.Node, error) {
 	if t == graph.PC {
 		return nil, fmt.Errorf("use CreatePolicyClass to create a policy class node")
 	} else if len(name) == 0 {
@@ -189,7 +189,7 @@ func (g *Neo4jGraph) CreateNode(name string, t graph.NodeType, properties graph.
 	return result.(*graph.Node), nil
 }
 
-func (g *Neo4jGraph) UpdateNode(name string, properties graph.PropertyMap) error {
+func (g *Graph) UpdateNode(name string, properties graph.PropertyMap) error {
 	if name == "" {
 		return fmt.Errorf("no name was provided when updating a node in the neo4j graph")
 	}
@@ -231,7 +231,7 @@ func (g *Neo4jGraph) UpdateNode(name string, properties graph.PropertyMap) error
 	return nil
 }
 
-func (g *Neo4jGraph) RemoveNode(name string) {
+func (g *Graph) RemoveNode(name string) {
 	session := g.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeWrite,
 		DatabaseName: g.config.Database,
@@ -252,7 +252,7 @@ func (g *Neo4jGraph) RemoveNode(name string) {
 	session.Close()
 }
 
-func (mg *Neo4jGraph) PolicyClasses() set.Set {
+func (mg *Graph) PolicyClasses() set.Set {
 	namesPolicyClasses := set.NewSet()
 	nodes := g.Nodes()
 	for node := range nodes.Iter() {
@@ -264,7 +264,7 @@ func (mg *Neo4jGraph) PolicyClasses() set.Set {
 	return namesPolicyClasses
 }
 
-func (g *Neo4jGraph) Nodes() set.Set {
+func (g *Graph) Nodes() set.Set {
 	session := g.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeRead,
 		DatabaseName: g.config.Database,
@@ -310,7 +310,7 @@ func (g *Neo4jGraph) Nodes() set.Set {
 	return nodes.Union(result.(set.Set))
 }
 
-func (g *Neo4jGraph) Exists(name string) bool {
+func (g *Graph) Exists(name string) bool {
 
 	session := g.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeRead,
@@ -344,7 +344,7 @@ func (g *Neo4jGraph) Exists(name string) bool {
 	return count > 0
 }
 
-func (g *Neo4jGraph) Node(name string) (*graph.Node, error) {
+func (g *Graph) Node(name string) (*graph.Node, error) {
 	session := g.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeRead,
 		DatabaseName: g.config.Database,
@@ -394,7 +394,7 @@ func (g *Neo4jGraph) Node(name string) (*graph.Node, error) {
 	return result.(*graph.Node), nil
 }
 
-func (g *Neo4jGraph) NodeFromDetails(t graph.NodeType, properties graph.PropertyMap) (*graph.Node, error) {
+func (g *Graph) NodeFromDetails(t graph.NodeType, properties graph.PropertyMap) (*graph.Node, error) {
 	search := g.Search(t, properties).Iterator()
 	if !search.HasNext() {
 		return nil, fmt.Errorf("a node matching the criteria (%s, %v) does not exist", t.String(), properties)
@@ -403,7 +403,7 @@ func (g *Neo4jGraph) NodeFromDetails(t graph.NodeType, properties graph.Property
 	return search.Next().(*graph.Node), nil
 }
 
-func (g *Neo4jGraph) Search(t graph.NodeType, properties graph.PropertyMap) set.Set {
+func (g *Graph) Search(t graph.NodeType, properties graph.PropertyMap) set.Set {
 	if properties == nil {
 		properties = graph.NewPropertyMap()
 	}
@@ -431,7 +431,7 @@ func (g *Neo4jGraph) Search(t graph.NodeType, properties graph.PropertyMap) set.
 	return results
 }
 
-func (g *Neo4jGraph) Children(name string) set.Set {
+func (g *Graph) Children(name string) set.Set {
 	if !g.Exists(name) {
 		log.Fatalf(node_not_found_msg, name)
 	}
@@ -466,7 +466,7 @@ func (g *Neo4jGraph) Children(name string) set.Set {
 	return nodes.Union(result.(set.Set))
 }
 
-func (g *Neo4jGraph) Parents(name string) set.Set {
+func (g *Graph) Parents(name string) set.Set {
 	if !g.Exists(name) {
 		log.Fatalf(node_not_found_msg, name)
 	}
@@ -501,7 +501,7 @@ func (g *Neo4jGraph) Parents(name string) set.Set {
 	return nodes.Union(result.(set.Set))
 }
 
-func (g *Neo4jGraph) Assign(child, parent string) error {
+func (g *Graph) Assign(child, parent string) error {
 	if !g.Exists(child) {
 		return fmt.Errorf(node_not_found_msg, child)
 	} else if !g.Exists(parent) {
@@ -537,7 +537,7 @@ func (g *Neo4jGraph) Assign(child, parent string) error {
 	return err
 }
 
-func (g *Neo4jGraph) Deassign(child, parent string) error {
+func (g *Graph) Deassign(child, parent string) error {
 	if !g.Exists(child) {
 		return fmt.Errorf(node_not_found_msg, child)
 	} else if !g.Exists(parent) {
@@ -562,7 +562,7 @@ func (g *Neo4jGraph) Deassign(child, parent string) error {
 	return err
 }
 
-func (g *Neo4jGraph) IsAssigned(child, parent string) bool {
+func (g *Graph) IsAssigned(child, parent string) bool {
 	session := g.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeRead,
 		DatabaseName: g.config.Database,
@@ -596,7 +596,7 @@ func (g *Neo4jGraph) IsAssigned(child, parent string) bool {
 	return count > 0
 }
 
-func (g *Neo4jGraph) Associate(ua, target string, ops operations.OperationSet) error {
+func (g *Graph) Associate(ua, target string, ops operations.OperationSet) error {
 	if !g.Exists(ua) {
 		return fmt.Errorf(node_not_found_msg, ua)
 	} else if !g.Exists(target) {
@@ -657,7 +657,7 @@ func (g *Neo4jGraph) Associate(ua, target string, ops operations.OperationSet) e
 	return err
 }
 
-func (g *Neo4jGraph) SourceAssociations(source string) (map[string]operations.OperationSet, error) {
+func (g *Graph) SourceAssociations(source string) (map[string]operations.OperationSet, error) {
 	if !g.Exists(source) {
 		return nil, fmt.Errorf(node_not_found_msg, source)
 	}
@@ -693,7 +693,7 @@ func (g *Neo4jGraph) SourceAssociations(source string) (map[string]operations.Op
 	return result.(map[string]operations.OperationSet), nil
 }
 
-func (g *Neo4jGraph) Dissociate(ua, target string) error {
+func (g *Graph) Dissociate(ua, target string) error {
 	if !g.Exists(ua) {
 		return fmt.Errorf(node_not_found_msg, ua)
 	} else if !g.Exists(target) {
@@ -718,7 +718,7 @@ func (g *Neo4jGraph) Dissociate(ua, target string) error {
 	return err
 }
 
-func (g *Neo4jGraph) TargetAssociations(target string) (map[string]operations.OperationSet, error) {
+func (g *Graph) TargetAssociations(target string) (map[string]operations.OperationSet, error) {
 	if !g.Exists(target) {
 		return nil, fmt.Errorf(node_not_found_msg, target)
 	}
@@ -755,7 +755,7 @@ func (g *Neo4jGraph) TargetAssociations(target string) (map[string]operations.Op
 }
 
 // testing only
-func (g *Neo4jGraph) reset() error {
+func (g *Graph) reset() error {
 	session := g.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeWrite,
 		DatabaseName: g.config.Database,

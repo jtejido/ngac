@@ -1,8 +1,8 @@
 package policy
 
 import (
-    "github.com/jtejido/ngac/pkg/operations"
-    "github.com/jtejido/ngac/pkg/pip/graph"
+    "ngac/pkg/operations"
+    "ngac/pkg/pip/graph"
 )
 
 const (

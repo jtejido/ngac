@@ -1,11 +1,11 @@
 package decider
 
 import (
-	"github.com/jtejido/ngac/internal/set"
-	"github.com/jtejido/ngac/pkg/operations"
-	"github.com/jtejido/ngac/pkg/pip/graph"
-	"github.com/jtejido/ngac/pkg/pip/prohibitions"
 	"math"
+	"ngac/internal/set"
+	"ngac/pkg/operations"
+	"ngac/pkg/pip/graph"
+	"ngac/pkg/pip/prohibitions"
 )
 
 var (

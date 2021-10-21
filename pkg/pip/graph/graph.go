@@ -1,12 +1,11 @@
 package graph
 
 import (
-	"github.com/jtejido/ngac/internal/set"
-	"github.com/jtejido/ngac/pkg/operations"
+	"ngac/internal/set"
+	"ngac/pkg/operations"
 )
 
-// Interface for maintaining an NGAC graph.
-// Every Dao for a graph implementation should follow this
+// An NGAC graph.
 type Graph interface {
 	/**
 	 * Create a policy class in the graph.

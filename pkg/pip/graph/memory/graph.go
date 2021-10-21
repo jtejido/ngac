@@ -1,9 +1,10 @@
-package graph
+package memory
 
 import (
 	"fmt"
-	"github.com/jtejido/ngac/internal/set"
-	"github.com/jtejido/ngac/pkg/operations"
+	"ngac/internal/set"
+	"ngac/pkg/operations"
+	"ngac/pkg/pip/graph"
 )
 
 const (
@@ -11,39 +12,39 @@ const (
 )
 
 // This is an in-memory dag implementation.
-type MemGraph struct {
-	nodes map[string]*Node // contains all nodes
-	from  map[string]map[string]Edge
-	to    map[string]map[string]Edge
+type Graph struct {
+	nodes map[string]*graph.Node // contains all nodes
+	from  map[string]map[string]graph.Edge
+	to    map[string]map[string]graph.Edge
 	pcs   set.Set // contains all policies
 }
 
-func NewMemGraph() *MemGraph {
-	return &MemGraph{
-		nodes: make(map[string]*Node),
-		from:  make(map[string]map[string]Edge),
-		to:    make(map[string]map[string]Edge),
+func New() *Graph {
+	return &Graph{
+		nodes: make(map[string]*graph.Node),
+		from:  make(map[string]map[string]graph.Edge),
+		to:    make(map[string]map[string]graph.Edge),
 		pcs:   set.NewSet(),
 	}
 }
 
-func (mg *MemGraph) addNode(n *Node) {
+func (mg *Graph) addNode(n *graph.Node) {
 	if _, exists := mg.nodes[n.Name]; exists {
 		panic(fmt.Sprintf("simple: node collision: %s", n.Name))
 	}
 
 	mg.nodes[n.Name] = n
-	mg.from[n.Name] = make(map[string]Edge)
-	mg.to[n.Name] = make(map[string]Edge)
+	mg.from[n.Name] = make(map[string]graph.Edge)
+	mg.to[n.Name] = make(map[string]graph.Edge)
 
 }
 
-func (mg *MemGraph) node(name string) (n *Node) {
+func (mg *Graph) node(name string) (n *graph.Node) {
 	n, _ = mg.nodes[name]
 	return
 }
 
-func (mg *MemGraph) setEdge(e Edge) error {
+func (mg *Graph) setEdge(e graph.Edge) error {
 	var (
 		sid = e.From()
 		tid = e.To()
@@ -69,7 +70,7 @@ func (mg *MemGraph) setEdge(e Edge) error {
 	return nil
 }
 
-func (mg *MemGraph) removeNode(name string) {
+func (mg *Graph) removeNode(name string) {
 	var found bool
 	_, found = mg.nodes[name]
 	if !found {
@@ -90,26 +91,26 @@ func (mg *MemGraph) removeNode(name string) {
 
 }
 
-func (mg *MemGraph) incomingEdgesOf(name string) []Edge {
-	var edges []Edge
+func (mg *Graph) incomingEdgesOf(name string) []graph.Edge {
+	var edges []graph.Edge
 	if _, ok := mg.to[name]; !ok {
-		return []Edge{}
+		return []graph.Edge{}
 	}
 
 	for _, edge := range mg.to[name] {
 		edges = append(edges, edge)
 	}
 	if len(edges) == 0 {
-		return []Edge{}
+		return []graph.Edge{}
 	}
 
 	return edges
 }
 
-func (mg *MemGraph) outgoingEdgesOf(name string) []Edge {
-	var edges []Edge
+func (mg *Graph) outgoingEdgesOf(name string) []graph.Edge {
+	var edges []graph.Edge
 	if _, ok := mg.from[name]; !ok {
-		return []Edge{}
+		return []graph.Edge{}
 	}
 
 	for _, edge := range mg.from[name] {
@@ -117,20 +118,20 @@ func (mg *MemGraph) outgoingEdgesOf(name string) []Edge {
 	}
 
 	if len(edges) == 0 {
-		return []Edge{}
+		return []graph.Edge{}
 	}
 
 	return edges
 }
 
-func (mg *MemGraph) hasEdgeFromTo(u, v string) bool {
+func (mg *Graph) hasEdgeFromTo(u, v string) bool {
 	var found bool
 	_, found = mg.from[u][v]
 
 	return found
 }
 
-func (mg *MemGraph) removeEdge(fid, tid string) error {
+func (mg *Graph) removeEdge(fid, tid string) error {
 	if _, ok := mg.nodes[fid]; !ok {
 		return fmt.Errorf("source vertex not in the graph.")
 	}
@@ -144,7 +145,7 @@ func (mg *MemGraph) removeEdge(fid, tid string) error {
 	return nil
 }
 
-func (mg *MemGraph) CreatePolicyClass(name string, properties PropertyMap) (*Node, error) {
+func (mg *Graph) CreatePolicyClass(name string, properties graph.PropertyMap) (*graph.Node, error) {
 	if len(name) == 0 {
 		return nil, fmt.Errorf("no name was provided when creating a node in the in-memory graph")
 	} else if mg.Exists(name) {
@@ -156,19 +157,19 @@ func (mg *MemGraph) CreatePolicyClass(name string, properties PropertyMap) (*Nod
 
 	// create the node
 	if properties == nil {
-		properties = NewPropertyMap()
+		properties = graph.NewPropertyMap()
 	}
 
-	node := &Node{name, PC, properties}
+	node := &graph.Node{name, graph.PC, properties}
 	mg.addNode(node)
 
 	return node, nil
 }
 
-func (mg *MemGraph) CreateNode(name string, t NodeType, properties PropertyMap, initialParent string, additionalParents ...string) (*Node, error) {
+func (mg *Graph) CreateNode(name string, t graph.NodeType, properties graph.PropertyMap, initialParent string, additionalParents ...string) (*graph.Node, error) {
 	//check for null values
 
-	if t == PC {
+	if t == graph.PC {
 		return nil, fmt.Errorf("use CreatePolicyClass to create a policy class node")
 	} else if len(name) == 0 {
 		return nil, fmt.Errorf("no name was provided when creating a node in the in-memory graph")
@@ -178,10 +179,10 @@ func (mg *MemGraph) CreateNode(name string, t NodeType, properties PropertyMap, 
 
 	//store the node in the map
 	if properties == nil {
-		properties = NewPropertyMap()
+		properties = graph.NewPropertyMap()
 	}
 
-	node := &Node{name, t, properties}
+	node := &graph.Node{name, t, properties}
 
 	mg.addNode(node)
 
@@ -199,7 +200,7 @@ func (mg *MemGraph) CreateNode(name string, t NodeType, properties PropertyMap, 
 	return node, nil
 }
 
-func (mg *MemGraph) UpdateNode(name string, properties PropertyMap) error {
+func (mg *Graph) UpdateNode(name string, properties graph.PropertyMap) error {
 	n, exists := mg.nodes[name]
 	if !exists {
 		return fmt.Errorf("node with the name %s could not be found to update", name)
@@ -214,7 +215,7 @@ func (mg *MemGraph) UpdateNode(name string, properties PropertyMap) error {
 	return nil
 }
 
-func (mg *MemGraph) RemoveNode(name string) {
+func (mg *Graph) RemoveNode(name string) {
 	_, exists := mg.nodes[name]
 	if !exists {
 		return
@@ -227,16 +228,16 @@ func (mg *MemGraph) RemoveNode(name string) {
 	mg.pcs.Remove(name)
 }
 
-func (mg *MemGraph) Exists(name string) bool {
+func (mg *Graph) Exists(name string) bool {
 	_, exists := mg.nodes[name]
 	return exists
 }
 
-func (mg *MemGraph) PolicyClasses() set.Set {
+func (mg *Graph) PolicyClasses() set.Set {
 	return mg.pcs
 }
 
-func (mg *MemGraph) Nodes() set.Set {
+func (mg *Graph) Nodes() set.Set {
 	s := set.NewSet()
 	for _, v := range mg.nodes {
 		s.Add(v)
@@ -245,7 +246,7 @@ func (mg *MemGraph) Nodes() set.Set {
 	return s
 }
 
-func (mg *MemGraph) Node(name string) (*Node, error) {
+func (mg *Graph) Node(name string) (*graph.Node, error) {
 	node := mg.node(name)
 	if node == nil {
 		return nil, fmt.Errorf("a node with the name %s does not exist", name)
@@ -254,24 +255,24 @@ func (mg *MemGraph) Node(name string) (*Node, error) {
 	return node, nil
 }
 
-func (mg *MemGraph) NodeFromDetails(t NodeType, properties PropertyMap) (*Node, error) {
+func (mg *Graph) NodeFromDetails(t graph.NodeType, properties graph.PropertyMap) (*graph.Node, error) {
 	search := mg.Search(t, properties).Iterator()
 	if !search.HasNext() {
 		return nil, fmt.Errorf("a node matching the criteria (%s, %v) does not exist", t.String(), properties)
 	}
 
-	return search.Next().(*Node), nil
+	return search.Next().(*graph.Node), nil
 }
 
-func (mg *MemGraph) Search(t NodeType, properties PropertyMap) set.Set {
+func (mg *Graph) Search(t graph.NodeType, properties graph.PropertyMap) set.Set {
 	if properties == nil {
-		properties = NewPropertyMap()
+		properties = graph.NewPropertyMap()
 	}
 
 	results := set.NewSet()
 	// iterate over the nodes to find ones that match the search parameters
 	for _, node := range mg.nodes {
-		if node.Type != t && t != NOOP {
+		if node.Type != t && t != graph.NOOP {
 			continue
 		}
 
@@ -290,14 +291,14 @@ func (mg *MemGraph) Search(t NodeType, properties PropertyMap) set.Set {
 	return results
 }
 
-func (mg *MemGraph) Children(name string) set.Set {
+func (mg *Graph) Children(name string) set.Set {
 	if !mg.Exists(name) {
 		panic(fmt.Errorf(node_not_found_msg, name))
 	}
 
 	children := set.NewSet()
 	for _, rel := range mg.incomingEdgesOf(name) {
-		if _, ok := rel.(*Association); ok {
+		if _, ok := rel.(*graph.Association); ok {
 			continue
 		}
 
@@ -307,14 +308,14 @@ func (mg *MemGraph) Children(name string) set.Set {
 	return children
 }
 
-func (mg *MemGraph) Parents(name string) set.Set {
+func (mg *Graph) Parents(name string) set.Set {
 	if !mg.Exists(name) {
 		panic(fmt.Errorf(node_not_found_msg, name))
 	}
 
 	parents := set.NewSet()
 	for _, rel := range mg.outgoingEdgesOf(name) {
-		if _, ok := rel.(*Association); ok {
+		if _, ok := rel.(*graph.Association); ok {
 			continue
 		}
 
@@ -324,7 +325,7 @@ func (mg *MemGraph) Parents(name string) set.Set {
 	return parents
 }
 
-func (mg *MemGraph) Assign(child, parent string) error {
+func (mg *Graph) Assign(child, parent string) error {
 	if !mg.Exists(child) {
 		return fmt.Errorf(node_not_found_msg, child)
 	} else if !mg.Exists(parent) {
@@ -338,26 +339,26 @@ func (mg *MemGraph) Assign(child, parent string) error {
 	c := mg.node(child)
 	p := mg.node(parent)
 
-	if err := CheckAssignment(c.Type, p.Type); err != nil {
+	if err := graph.CheckAssignment(c.Type, p.Type); err != nil {
 		return err
 	}
 
-	a := new(Assignment)
+	a := new(graph.Assignment)
 	a.Source = child
 	a.Target = parent
 
 	return mg.setEdge(a)
 }
 
-func (mg *MemGraph) Deassign(child, parent string) error {
+func (mg *Graph) Deassign(child, parent string) error {
 	return mg.removeEdge(child, parent)
 }
 
-func (mg *MemGraph) IsAssigned(child, parent string) bool {
+func (mg *Graph) IsAssigned(child, parent string) bool {
 	return mg.hasEdgeFromTo(child, parent)
 }
 
-func (mg *MemGraph) Associate(ua, target string, ops operations.OperationSet) error {
+func (mg *Graph) Associate(ua, target string, ops operations.OperationSet) error {
 	if !mg.Exists(ua) {
 		return fmt.Errorf(node_not_found_msg, ua)
 	} else if !mg.Exists(target) {
@@ -368,7 +369,7 @@ func (mg *MemGraph) Associate(ua, target string, ops operations.OperationSet) er
 	targetNode := mg.node(target)
 
 	// check that the association is valid
-	if err := CheckAssociation(uaNode.Type, targetNode.Type); err != nil {
+	if err := graph.CheckAssociation(uaNode.Type, targetNode.Type); err != nil {
 		return err
 	}
 
@@ -378,50 +379,50 @@ func (mg *MemGraph) Associate(ua, target string, ops operations.OperationSet) er
 	edge, found := mg.from[ua][target]
 	var isAssign bool
 	if found {
-		_, isAssign = edge.(*Assignment)
+		_, isAssign = edge.(*graph.Assignment)
 	}
 
 	if !found || isAssign {
-		e := new(Association)
+		e := new(graph.Association)
 		e.Source = ua
 		e.Target = target
 		e.Operations = ops
 		if err := mg.setEdge(e); err != nil {
 			return err
 		}
-	} else if assoc, ok := edge.(*Association); ok {
+	} else if assoc, ok := edge.(*graph.Association); ok {
 		assoc.Operations = ops
 	}
 
 	return nil
 }
 
-func (mg *MemGraph) Dissociate(ua, target string) error {
+func (mg *Graph) Dissociate(ua, target string) error {
 	return mg.removeEdge(ua, target)
 }
 
-func (mg *MemGraph) SourceAssociations(source string) (map[string]operations.OperationSet, error) {
+func (mg *Graph) SourceAssociations(source string) (map[string]operations.OperationSet, error) {
 	if !mg.Exists(source) {
 		return nil, fmt.Errorf(node_not_found_msg, source)
 	}
 
 	assocs := make(map[string]operations.OperationSet)
 	for _, rel := range mg.outgoingEdgesOf(source) {
-		if assoc, ok := rel.(*Association); ok {
+		if assoc, ok := rel.(*graph.Association); ok {
 			assocs[assoc.Target] = operations.NewOperationSetFromSet(assoc.Operations)
 		}
 	}
 	return assocs, nil
 }
 
-func (mg *MemGraph) TargetAssociations(target string) (map[string]operations.OperationSet, error) {
+func (mg *Graph) TargetAssociations(target string) (map[string]operations.OperationSet, error) {
 	if !mg.Exists(target) {
 		return nil, fmt.Errorf(node_not_found_msg, target)
 	}
 
 	assocs := make(map[string]operations.OperationSet)
 	for _, rel := range mg.incomingEdgesOf(target) {
-		if assoc, ok := rel.(*Association); ok {
+		if assoc, ok := rel.(*graph.Association); ok {
 			assocs[assoc.Source] = operations.NewOperationSetFromSet(assoc.Operations)
 		}
 	}

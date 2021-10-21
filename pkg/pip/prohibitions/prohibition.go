@@ -1,7 +1,7 @@
 package prohibitions
 
 import (
-    "github.com/jtejido/ngac/pkg/operations"
+    "ngac/pkg/operations"
 )
 
 type Prohibition struct {

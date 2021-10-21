@@ -2,7 +2,7 @@ package graph
 
 import (
 	"fmt"
-	"github.com/jtejido/ngac/pkg/operations"
+	"ngac/pkg/operations"
 	"strings"
 )
 

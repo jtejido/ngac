@@ -2,16 +2,16 @@ package service
 
 import (
     "fmt"
-    "github.com/jtejido/ngac/internal/set"
-    "github.com/jtejido/ngac/pkg/common"
-    "github.com/jtejido/ngac/pkg/context"
-    "github.com/jtejido/ngac/pkg/epp"
-    "github.com/jtejido/ngac/pkg/operations"
-    "github.com/jtejido/ngac/pkg/pap/policy"
-    "github.com/jtejido/ngac/pkg/pdp/audit"
-    "github.com/jtejido/ngac/pkg/pdp/decider"
-    "github.com/jtejido/ngac/pkg/pdp/service/guard"
-    "github.com/jtejido/ngac/pkg/pip/graph"
+    "ngac/internal/set"
+    "ngac/pkg/common"
+    "ngac/pkg/context"
+    "ngac/pkg/epp"
+    "ngac/pkg/operations"
+    "ngac/pkg/pap/policy"
+    "ngac/pkg/pdp/audit"
+    "ngac/pkg/pdp/decider"
+    "ngac/pkg/pdp/service/guard"
+    "ngac/pkg/pip/graph"
 )
 
 var _ graph.Graph = &Graph{}

@@ -1,9 +1,10 @@
 package audit
 
 import (
-	"github.com/jtejido/ngac/internal/set"
-	"github.com/jtejido/ngac/pkg/operations"
-	"github.com/jtejido/ngac/pkg/pip/graph"
+	"ngac/internal/set"
+	"ngac/pkg/operations"
+	"ngac/pkg/pip/graph"
+	"ngac/pkg/pip/graph/memory"
 	"sort"
 	"strings"
 	"testing"
@@ -53,7 +54,7 @@ func getTests(t *testing.T) []testCase {
 }
 
 func graph1(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -90,7 +91,7 @@ func graph1(t *testing.T) testCase {
 }
 
 func graph2(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -135,7 +136,7 @@ func graph2(t *testing.T) testCase {
 }
 
 func graph3(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -180,7 +181,7 @@ func graph3(t *testing.T) testCase {
 }
 
 func graph4(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -212,7 +213,7 @@ func graph4(t *testing.T) testCase {
 }
 
 func graph5(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -255,7 +256,7 @@ func graph5(t *testing.T) testCase {
 // removed graph 6 because of change to Graph interface -- requiring parent nodes on creation prevents floating nodes
 
 func graph7(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -314,7 +315,7 @@ func graph7(t *testing.T) testCase {
 }
 
 func graph8(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -373,7 +374,7 @@ func graph8(t *testing.T) testCase {
 }
 
 func graph9(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -417,7 +418,7 @@ func graph9(t *testing.T) testCase {
 }
 
 func graph10(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -471,7 +472,7 @@ func graph10(t *testing.T) testCase {
 }
 
 func graph11(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -507,7 +508,7 @@ func graph11(t *testing.T) testCase {
 }
 
 func graph12(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -553,7 +554,7 @@ func graph12(t *testing.T) testCase {
 }
 
 func graph13(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -606,7 +607,7 @@ func graph13(t *testing.T) testCase {
 }
 
 func graph14(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -657,7 +658,7 @@ func graph14(t *testing.T) testCase {
 }
 
 func graph15(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -700,7 +701,7 @@ func graph15(t *testing.T) testCase {
 }
 
 func graph16(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -735,7 +736,7 @@ func graph16(t *testing.T) testCase {
 }
 
 func graph17(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -771,7 +772,7 @@ func graph17(t *testing.T) testCase {
 }
 
 func graph18(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -823,7 +824,7 @@ func graph18(t *testing.T) testCase {
 }
 
 func graph19(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -871,7 +872,7 @@ func graph19(t *testing.T) testCase {
 }
 
 func graph20(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -919,7 +920,7 @@ func graph20(t *testing.T) testCase {
 }
 
 func graph21(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -964,7 +965,7 @@ func graph21(t *testing.T) testCase {
 }
 
 func graph22(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -1002,7 +1003,7 @@ func graph22(t *testing.T) testCase {
 }
 
 func graph23(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -1044,7 +1045,7 @@ func graph23(t *testing.T) testCase {
 }
 
 func graph24(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	var err error
 	_, err = g.CreatePolicyClass("pc1", nil)
 	if err != nil {
@@ -1086,7 +1087,7 @@ func graph24(t *testing.T) testCase {
 }
 
 func graph25(t *testing.T) testCase {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	pc1, err := g.CreatePolicyClass("pc1", nil)
 	if err != nil {
 		t.Fatalf("failed to create policy class: %s", err)

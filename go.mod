@@ -1,4 +1,4 @@
-module github.com/jtejido/ngac
+module ngac
 
 go 1.15
 

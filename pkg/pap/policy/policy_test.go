@@ -1,12 +1,13 @@
 package policy
 
 import (
-	"github.com/jtejido/ngac/pkg/pip/graph"
+	"ngac/pkg/pip/graph"
+	"ngac/pkg/pip/graph/memory"
 	"testing"
 )
 
 func TestSuperPolicyWithEmptyGraph(t *testing.T) {
-	g := graph.NewMemGraph()
+	g := memory.New()
 	superPolicy := NewSuperPolicy()
 	superPolicy.Configure(g)
 	testSuperPolicy(t, g)

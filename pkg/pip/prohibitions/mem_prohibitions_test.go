@@ -1,8 +1,8 @@
 package prohibitions
 
 import (
-	"github.com/jtejido/ngac/pkg/operations"
 	"math/rand"
+	"ngac/pkg/operations"
 	"runtime"
 	"sync"
 	"testing"

@@ -2,7 +2,7 @@ package graph
 
 import (
 	"container/list"
-	"github.com/jtejido/ngac/internal/set"
+	"ngac/internal/set"
 )
 
 type Direction int
