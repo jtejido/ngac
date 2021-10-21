@@ -17,3 +17,7 @@ This port supports **Neo4j** as our Persistent Graph. In order to run it, it wil
 Obligation JSON Unmarshallers - file will be JSON (following the original's JSON schema).
 
 Follow [https://github.com/golang-standards/project-layout](https://github.com/golang-standards/project-layout)
+
+DTO/DAO models for various Persistent and In-Memory graph DBs.
+
+EPP to Publish/Subscribe model
