@@ -4,49 +4,49 @@ import (
 	"fmt"
 	"ngac/internal/set"
 	"ngac/pkg/operations"
-	"ngac/pkg/pip/graph"
+	g "ngac/pkg/pip/graph"
 )
 
-var _ graph.Graph = &Graph{}
+var _ g.Graph = &graph{}
 
 const (
 	node_not_found_msg = "node %s does not exist in the graph"
 )
 
 // This is an in-memory dag implementation.
-type Graph struct {
-	nodes map[string]*graph.Node // contains all nodes
-	from  map[string]map[string]graph.Edge
-	to    map[string]map[string]graph.Edge
+type graph struct {
+	nodes map[string]*g.Node // contains all nodes
+	from  map[string]map[string]g.Edge
+	to    map[string]map[string]g.Edge
 	pcs   set.Set // contains all policies
 }
 
-func New() *Graph {
-	return &Graph{
-		nodes: make(map[string]*graph.Node),
-		from:  make(map[string]map[string]graph.Edge),
-		to:    make(map[string]map[string]graph.Edge),
+func New() *graph {
+	return &graph{
+		nodes: make(map[string]*g.Node),
+		from:  make(map[string]map[string]g.Edge),
+		to:    make(map[string]map[string]g.Edge),
 		pcs:   set.NewSet(),
 	}
 }
 
-func (mg *Graph) addNode(n *graph.Node) {
+func (mg *graph) addNode(n *g.Node) {
 	if _, exists := mg.nodes[n.Name]; exists {
 		panic(fmt.Sprintf("simple: node collision: %s", n.Name))
 	}
 
 	mg.nodes[n.Name] = n
-	mg.from[n.Name] = make(map[string]graph.Edge)
-	mg.to[n.Name] = make(map[string]graph.Edge)
+	mg.from[n.Name] = make(map[string]g.Edge)
+	mg.to[n.Name] = make(map[string]g.Edge)
 
 }
 
-func (mg *Graph) node(name string) (n *graph.Node) {
+func (mg *graph) node(name string) (n *g.Node) {
 	n, _ = mg.nodes[name]
 	return
 }
 
-func (mg *Graph) setEdge(e graph.Edge) error {
+func (mg *graph) setEdge(e g.Edge) error {
 	var (
 		sid = e.From()
 		tid = e.To()
@@ -59,11 +59,11 @@ func (mg *Graph) setEdge(e graph.Edge) error {
 	_, found1 = mg.nodes[sid]
 	_, found2 = mg.nodes[tid]
 	if !found1 {
-		return fmt.Errorf("source vertex not in the graph.")
+		return fmt.Errorf("source vertex not in the g.")
 	}
 
 	if !found2 {
-		return fmt.Errorf("target vertex not in the graph.")
+		return fmt.Errorf("target vertex not in the g.")
 	}
 
 	mg.from[sid][tid] = e
@@ -72,7 +72,7 @@ func (mg *Graph) setEdge(e graph.Edge) error {
 	return nil
 }
 
-func (mg *Graph) removeNode(name string) {
+func (mg *graph) removeNode(name string) {
 	var found bool
 	_, found = mg.nodes[name]
 	if !found {
@@ -93,26 +93,26 @@ func (mg *Graph) removeNode(name string) {
 
 }
 
-func (mg *Graph) incomingEdgesOf(name string) []graph.Edge {
-	var edges []graph.Edge
+func (mg *graph) incomingEdgesOf(name string) []g.Edge {
+	var edges []g.Edge
 	if _, ok := mg.to[name]; !ok {
-		return []graph.Edge{}
+		return []g.Edge{}
 	}
 
 	for _, edge := range mg.to[name] {
 		edges = append(edges, edge)
 	}
 	if len(edges) == 0 {
-		return []graph.Edge{}
+		return []g.Edge{}
 	}
 
 	return edges
 }
 
-func (mg *Graph) outgoingEdgesOf(name string) []graph.Edge {
-	var edges []graph.Edge
+func (mg *graph) outgoingEdgesOf(name string) []g.Edge {
+	var edges []g.Edge
 	if _, ok := mg.from[name]; !ok {
-		return []graph.Edge{}
+		return []g.Edge{}
 	}
 
 	for _, edge := range mg.from[name] {
@@ -120,25 +120,25 @@ func (mg *Graph) outgoingEdgesOf(name string) []graph.Edge {
 	}
 
 	if len(edges) == 0 {
-		return []graph.Edge{}
+		return []g.Edge{}
 	}
 
 	return edges
 }
 
-func (mg *Graph) hasEdgeFromTo(u, v string) bool {
+func (mg *graph) hasEdgeFromTo(u, v string) bool {
 	var found bool
 	_, found = mg.from[u][v]
 
 	return found
 }
 
-func (mg *Graph) removeEdge(fid, tid string) error {
+func (mg *graph) removeEdge(fid, tid string) error {
 	if _, ok := mg.nodes[fid]; !ok {
-		return fmt.Errorf("source vertex not in the graph.")
+		return fmt.Errorf("source vertex not in the g.")
 	}
 	if _, ok := mg.nodes[tid]; !ok {
-		return fmt.Errorf("target vertex not in the graph.")
+		return fmt.Errorf("target vertex not in the g.")
 	}
 
 	delete(mg.from[fid], tid)
@@ -147,7 +147,7 @@ func (mg *Graph) removeEdge(fid, tid string) error {
 	return nil
 }
 
-func (mg *Graph) CreatePolicyClass(name string, properties graph.PropertyMap) (*graph.Node, error) {
+func (mg *graph) CreatePolicyClass(name string, properties g.PropertyMap) (*g.Node, error) {
 	if len(name) == 0 {
 		return nil, fmt.Errorf("no name was provided when creating a node in the in-memory graph")
 	} else if mg.Exists(name) {
@@ -159,19 +159,19 @@ func (mg *Graph) CreatePolicyClass(name string, properties graph.PropertyMap) (*
 
 	// create the node
 	if properties == nil {
-		properties = graph.NewPropertyMap()
+		properties = g.NewPropertyMap()
 	}
 
-	node := &graph.Node{name, graph.PC, properties}
+	node := &g.Node{name, g.PC, properties}
 	mg.addNode(node)
 
 	return node, nil
 }
 
-func (mg *Graph) CreateNode(name string, t graph.NodeType, properties graph.PropertyMap, initialParent string, additionalParents ...string) (*graph.Node, error) {
+func (mg *graph) CreateNode(name string, t g.NodeType, properties g.PropertyMap, initialParent string, additionalParents ...string) (*g.Node, error) {
 	//check for null values
 
-	if t == graph.PC {
+	if t == g.PC {
 		return nil, fmt.Errorf("use CreatePolicyClass to create a policy class node")
 	} else if len(name) == 0 {
 		return nil, fmt.Errorf("no name was provided when creating a node in the in-memory graph")
@@ -181,10 +181,10 @@ func (mg *Graph) CreateNode(name string, t graph.NodeType, properties graph.Prop
 
 	//store the node in the map
 	if properties == nil {
-		properties = graph.NewPropertyMap()
+		properties = g.NewPropertyMap()
 	}
 
-	node := &graph.Node{name, t, properties}
+	node := &g.Node{name, t, properties}
 
 	mg.addNode(node)
 
@@ -202,7 +202,7 @@ func (mg *Graph) CreateNode(name string, t graph.NodeType, properties graph.Prop
 	return node, nil
 }
 
-func (mg *Graph) UpdateNode(name string, properties graph.PropertyMap) error {
+func (mg *graph) UpdateNode(name string, properties g.PropertyMap) error {
 	n, exists := mg.nodes[name]
 	if !exists {
 		return fmt.Errorf("node with the name %s could not be found to update", name)
@@ -217,7 +217,7 @@ func (mg *Graph) UpdateNode(name string, properties graph.PropertyMap) error {
 	return nil
 }
 
-func (mg *Graph) RemoveNode(name string) {
+func (mg *graph) RemoveNode(name string) {
 	_, exists := mg.nodes[name]
 	if !exists {
 		return
@@ -230,16 +230,16 @@ func (mg *Graph) RemoveNode(name string) {
 	mg.pcs.Remove(name)
 }
 
-func (mg *Graph) Exists(name string) bool {
+func (mg *graph) Exists(name string) bool {
 	_, exists := mg.nodes[name]
 	return exists
 }
 
-func (mg *Graph) PolicyClasses() set.Set {
+func (mg *graph) PolicyClasses() set.Set {
 	return mg.pcs
 }
 
-func (mg *Graph) Nodes() set.Set {
+func (mg *graph) Nodes() set.Set {
 	s := set.NewSet()
 	for _, v := range mg.nodes {
 		s.Add(v)
@@ -248,7 +248,7 @@ func (mg *Graph) Nodes() set.Set {
 	return s
 }
 
-func (mg *Graph) Node(name string) (*graph.Node, error) {
+func (mg *graph) Node(name string) (*g.Node, error) {
 	node := mg.node(name)
 	if node == nil {
 		return nil, fmt.Errorf("a node with the name %s does not exist", name)
@@ -257,24 +257,24 @@ func (mg *Graph) Node(name string) (*graph.Node, error) {
 	return node, nil
 }
 
-func (mg *Graph) NodeFromDetails(t graph.NodeType, properties graph.PropertyMap) (*graph.Node, error) {
+func (mg *graph) NodeFromDetails(t g.NodeType, properties g.PropertyMap) (*g.Node, error) {
 	search := mg.Search(t, properties).Iterator()
 	if !search.HasNext() {
 		return nil, fmt.Errorf("a node matching the criteria (%s, %v) does not exist", t.String(), properties)
 	}
 
-	return search.Next().(*graph.Node), nil
+	return search.Next().(*g.Node), nil
 }
 
-func (mg *Graph) Search(t graph.NodeType, properties graph.PropertyMap) set.Set {
+func (mg *graph) Search(t g.NodeType, properties g.PropertyMap) set.Set {
 	if properties == nil {
-		properties = graph.NewPropertyMap()
+		properties = g.NewPropertyMap()
 	}
 
 	results := set.NewSet()
 	// iterate over the nodes to find ones that match the search parameters
 	for _, node := range mg.nodes {
-		if node.Type != t && t != graph.NOOP {
+		if node.Type != t && t != g.NOOP {
 			continue
 		}
 
@@ -293,14 +293,14 @@ func (mg *Graph) Search(t graph.NodeType, properties graph.PropertyMap) set.Set 
 	return results
 }
 
-func (mg *Graph) Children(name string) set.Set {
+func (mg *graph) Children(name string) set.Set {
 	if !mg.Exists(name) {
 		panic(fmt.Errorf(node_not_found_msg, name))
 	}
 
 	children := set.NewSet()
 	for _, rel := range mg.incomingEdgesOf(name) {
-		if _, ok := rel.(*graph.Association); ok {
+		if _, ok := rel.(*g.Association); ok {
 			continue
 		}
 
@@ -310,14 +310,14 @@ func (mg *Graph) Children(name string) set.Set {
 	return children
 }
 
-func (mg *Graph) Parents(name string) set.Set {
+func (mg *graph) Parents(name string) set.Set {
 	if !mg.Exists(name) {
 		panic(fmt.Errorf(node_not_found_msg, name))
 	}
 
 	parents := set.NewSet()
 	for _, rel := range mg.outgoingEdgesOf(name) {
-		if _, ok := rel.(*graph.Association); ok {
+		if _, ok := rel.(*g.Association); ok {
 			continue
 		}
 
@@ -327,7 +327,7 @@ func (mg *Graph) Parents(name string) set.Set {
 	return parents
 }
 
-func (mg *Graph) Assign(child, parent string) error {
+func (mg *graph) Assign(child, parent string) error {
 	if !mg.Exists(child) {
 		return fmt.Errorf(node_not_found_msg, child)
 	} else if !mg.Exists(parent) {
@@ -341,26 +341,26 @@ func (mg *Graph) Assign(child, parent string) error {
 	c := mg.node(child)
 	p := mg.node(parent)
 
-	if err := graph.CheckAssignment(c.Type, p.Type); err != nil {
+	if err := g.CheckAssignment(c.Type, p.Type); err != nil {
 		return err
 	}
 
-	a := new(graph.Assignment)
+	a := new(g.Assignment)
 	a.Source = child
 	a.Target = parent
 
 	return mg.setEdge(a)
 }
 
-func (mg *Graph) Deassign(child, parent string) error {
+func (mg *graph) Deassign(child, parent string) error {
 	return mg.removeEdge(child, parent)
 }
 
-func (mg *Graph) IsAssigned(child, parent string) bool {
+func (mg *graph) IsAssigned(child, parent string) bool {
 	return mg.hasEdgeFromTo(child, parent)
 }
 
-func (mg *Graph) Associate(ua, target string, ops operations.OperationSet) error {
+func (mg *graph) Associate(ua, target string, ops operations.OperationSet) error {
 	if !mg.Exists(ua) {
 		return fmt.Errorf(node_not_found_msg, ua)
 	} else if !mg.Exists(target) {
@@ -371,7 +371,7 @@ func (mg *Graph) Associate(ua, target string, ops operations.OperationSet) error
 	targetNode := mg.node(target)
 
 	// check that the association is valid
-	if err := graph.CheckAssociation(uaNode.Type, targetNode.Type); err != nil {
+	if err := g.CheckAssociation(uaNode.Type, targetNode.Type); err != nil {
 		return err
 	}
 
@@ -381,50 +381,50 @@ func (mg *Graph) Associate(ua, target string, ops operations.OperationSet) error
 	edge, found := mg.from[ua][target]
 	var isAssign bool
 	if found {
-		_, isAssign = edge.(*graph.Assignment)
+		_, isAssign = edge.(*g.Assignment)
 	}
 
 	if !found || isAssign {
-		e := new(graph.Association)
+		e := new(g.Association)
 		e.Source = ua
 		e.Target = target
 		e.Operations = ops
 		if err := mg.setEdge(e); err != nil {
 			return err
 		}
-	} else if assoc, ok := edge.(*graph.Association); ok {
+	} else if assoc, ok := edge.(*g.Association); ok {
 		assoc.Operations = ops
 	}
 
 	return nil
 }
 
-func (mg *Graph) Dissociate(ua, target string) error {
+func (mg *graph) Dissociate(ua, target string) error {
 	return mg.removeEdge(ua, target)
 }
 
-func (mg *Graph) SourceAssociations(source string) (map[string]operations.OperationSet, error) {
+func (mg *graph) SourceAssociations(source string) (map[string]operations.OperationSet, error) {
 	if !mg.Exists(source) {
 		return nil, fmt.Errorf(node_not_found_msg, source)
 	}
 
 	assocs := make(map[string]operations.OperationSet)
 	for _, rel := range mg.outgoingEdgesOf(source) {
-		if assoc, ok := rel.(*graph.Association); ok {
+		if assoc, ok := rel.(*g.Association); ok {
 			assocs[assoc.Target] = operations.NewOperationSetFromSet(assoc.Operations)
 		}
 	}
 	return assocs, nil
 }
 
-func (mg *Graph) TargetAssociations(target string) (map[string]operations.OperationSet, error) {
+func (mg *graph) TargetAssociations(target string) (map[string]operations.OperationSet, error) {
 	if !mg.Exists(target) {
 		return nil, fmt.Errorf(node_not_found_msg, target)
 	}
 
 	assocs := make(map[string]operations.OperationSet)
 	for _, rel := range mg.incomingEdgesOf(target) {
-		if assoc, ok := rel.(*graph.Association); ok {
+		if assoc, ok := rel.(*g.Association); ok {
 			assocs[assoc.Source] = operations.NewOperationSetFromSet(assoc.Operations)
 		}
 	}

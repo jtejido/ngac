@@ -8,36 +8,36 @@ import (
 	"ngac/internal/set"
 	"ngac/pkg/config"
 	"ngac/pkg/operations"
-	"ngac/pkg/pip/graph"
+	g "ngac/pkg/pip/graph"
 	"strings"
 )
 
-var _ graph.Graph = &Graph{}
+var _ g.Graph = &graph{}
 
 const (
 	node_not_found_msg = "node %s does not exist in the graph"
 )
 
-type Graph struct {
+type graph struct {
 	config *config.Config
 	driver neo4j.Driver
 }
 
 // Accepts the config file's location for Neo4j
-func New(cfg string) (*Graph, error) {
+func New(cfg string) (*graph, error) {
 	conf, err := config.LoadConfig(cfg)
 	if err != nil {
 		return nil, err
 	}
-	ret := new(Graph)
+	ret := new(graph)
 	ret.config = conf
 	ret.driver = nil
 	return ret, nil
 }
 
-func (g *Graph) Start() (err error) {
-	if g.driver == nil {
-		g.driver, err = neo4j.NewDriver(g.config.Uri, neo4j.BasicAuth(g.config.Username, g.config.Password, ""))
+func (ng *graph) Start() (err error) {
+	if ng.driver == nil {
+		ng.driver, err = neo4j.NewDriver(ng.config.Uri, neo4j.BasicAuth(ng.config.Username, ng.config.Password, ""))
 		if err != nil {
 			return err
 		}
@@ -46,24 +46,24 @@ func (g *Graph) Start() (err error) {
 	return nil
 }
 
-func (g *Graph) Close() (err error) {
-	return g.driver.Close()
+func (ng *graph) Close() (err error) {
+	return ng.driver.Close()
 }
 
-func (g *Graph) CreatePolicyClass(name string, properties graph.PropertyMap) (*graph.Node, error) {
+func (ng *graph) CreatePolicyClass(name string, properties g.PropertyMap) (*g.Node, error) {
 	if len(name) == 0 {
 		return nil, fmt.Errorf("no name was provided when creating a node in the in-memory graph")
-	} else if g.Exists(name) {
+	} else if ng.Exists(name) {
 		return nil, fmt.Errorf("the name %s already exists in the graph", name)
 	}
 
 	if properties == nil {
-		properties = graph.NewPropertyMap()
+		properties = g.NewPropertyMap()
 	}
 
-	session := g.driver.NewSession(neo4j.SessionConfig{
+	session := ng.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeWrite,
-		DatabaseName: g.config.Database,
+		DatabaseName: ng.config.Database,
 	})
 
 	jsonStr, err := json.Marshal(properties)
@@ -71,9 +71,9 @@ func (g *Graph) CreatePolicyClass(name string, properties graph.PropertyMap) (*g
 		return nil, err
 	}
 	result, err := session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
-		records, err := tx.Run(fmt.Sprintf("CREATE (n:%s { name: $name, type: $type, properties: $propertyMap }) RETURN n.name, n.type, apoc.convert.getJsonPropertyMap(n, 'properties') as properties", graph.PC.String()), map[string]interface{}{
+		records, err := tx.Run(fmt.Sprintf("CREATE (n:%s { name: $name, type: $type, properties: $propertyMap }) RETURN n.name, n.type, apoc.convert.getJsonPropertyMap(n, 'properties') as properties", g.PC.String()), map[string]interface{}{
 			"name":        name,
-			"type":        graph.PC.String(),
+			"type":        g.PC.String(),
 			"propertyMap": string(jsonStr),
 		})
 		if err != nil {
@@ -84,10 +84,10 @@ func (g *Graph) CreatePolicyClass(name string, properties graph.PropertyMap) (*g
 			return nil, err
 		}
 
-		n := &graph.Node{
+		n := &g.Node{
 			Name:       record.Values[0].(string),
-			Type:       graph.ToNodeType(record.Values[1].(string)),
-			Properties: graph.NewPropertyMap(),
+			Type:       g.ToNodeType(record.Values[1].(string)),
+			Properties: g.NewPropertyMap(),
 		}
 
 		if m, ok := record.Values[2].(map[string]interface{}); ok {
@@ -111,25 +111,25 @@ func (g *Graph) CreatePolicyClass(name string, properties graph.PropertyMap) (*g
 		return nil, err
 	}
 
-	return result.(*graph.Node), nil
+	return result.(*g.Node), nil
 }
 
-func (g *Graph) CreateNode(name string, t graph.NodeType, properties graph.PropertyMap, initialParent string, additionalParents ...string) (*graph.Node, error) {
-	if t == graph.PC {
+func (ng *graph) CreateNode(name string, t g.NodeType, properties g.PropertyMap, initialParent string, additionalParents ...string) (*g.Node, error) {
+	if t == g.PC {
 		return nil, fmt.Errorf("use CreatePolicyClass to create a policy class node")
 	} else if len(name) == 0 {
 		return nil, fmt.Errorf("no name was provided when creating a node in the in-memory graph")
-	} else if g.Exists(name) {
+	} else if ng.Exists(name) {
 		return nil, fmt.Errorf("the name %s already exists in the graph", name)
 	}
 
 	if properties == nil {
-		properties = graph.NewPropertyMap()
+		properties = g.NewPropertyMap()
 	}
 
-	session := g.driver.NewSession(neo4j.SessionConfig{
+	session := ng.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeWrite,
-		DatabaseName: g.config.Database,
+		DatabaseName: ng.config.Database,
 	})
 
 	jsonStr, err := json.Marshal(properties)
@@ -151,10 +151,10 @@ func (g *Graph) CreateNode(name string, t graph.NodeType, properties graph.Prope
 			return nil, err
 		}
 
-		n := &graph.Node{
+		n := &g.Node{
 			Name:       record.Values[0].(string),
-			Type:       graph.ToNodeType(record.Values[1].(string)),
-			Properties: graph.NewPropertyMap(),
+			Type:       g.ToNodeType(record.Values[1].(string)),
+			Properties: g.NewPropertyMap(),
 		}
 
 		if m, ok := record.Values[2].(map[string]interface{}); ok {
@@ -178,30 +178,30 @@ func (g *Graph) CreateNode(name string, t graph.NodeType, properties graph.Prope
 		return nil, err
 	}
 
-	if err := g.Assign(name, initialParent); err != nil {
+	if err := ng.Assign(name, initialParent); err != nil {
 		return nil, err
 	}
 
 	for _, parent := range additionalParents {
-		if err := g.Assign(name, parent); err != nil {
+		if err := ng.Assign(name, parent); err != nil {
 			return nil, err
 		}
 	}
 
-	return result.(*graph.Node), nil
+	return result.(*g.Node), nil
 }
 
-func (g *Graph) UpdateNode(name string, properties graph.PropertyMap) error {
+func (ng *graph) UpdateNode(name string, properties g.PropertyMap) error {
 	if name == "" {
 		return fmt.Errorf("no name was provided when updating a node in the neo4j graph")
 	}
-	if !g.Exists(name) || name == "" {
+	if !ng.Exists(name) || name == "" {
 		return fmt.Errorf("node with the name %s could not be found to update", name)
 	}
 
-	session := g.driver.NewSession(neo4j.SessionConfig{
+	session := ng.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeWrite,
-		DatabaseName: g.config.Database,
+		DatabaseName: ng.config.Database,
 	})
 
 	if properties != nil {
@@ -233,10 +233,10 @@ func (g *Graph) UpdateNode(name string, properties graph.PropertyMap) error {
 	return nil
 }
 
-func (g *Graph) RemoveNode(name string) {
-	session := g.driver.NewSession(neo4j.SessionConfig{
+func (ng *graph) RemoveNode(name string) {
+	session := ng.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeWrite,
-		DatabaseName: g.config.Database,
+		DatabaseName: ng.config.Database,
 	})
 	session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		result, err := tx.Run("MATCH (n{name: $name}) DETACH DELETE n", map[string]interface{}{
@@ -254,32 +254,32 @@ func (g *Graph) RemoveNode(name string) {
 	session.Close()
 }
 
-func (mg *Graph) PolicyClasses() set.Set {
+func (mng *graph) PolicyClasses() set.Set {
 	namesPolicyClasses := set.NewSet()
-	nodes := g.Nodes()
+	nodes := ng.Nodes()
 	for node := range nodes.Iter() {
-		if node.(*graph.Node).Type == graph.PC {
-			namesPolicyClasses.Add(node.(*graph.Node).Name)
+		if node.(*g.Node).Type == g.PC {
+			namesPolicyClasses.Add(node.(*g.Node).Name)
 		}
 	}
 
 	return namesPolicyClasses
 }
 
-func (g *Graph) Nodes() set.Set {
-	session := g.driver.NewSession(neo4j.SessionConfig{
+func (ng *graph) Nodes() set.Set {
+	session := ng.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeRead,
-		DatabaseName: g.config.Database,
+		DatabaseName: ng.config.Database,
 	})
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		records, err := tx.Run("MATCH (n) return n.name, n.type, apoc.convert.getJsonPropertyMap(n, 'properties') as properties", nil)
 		nodes := set.NewSet()
 		for records.Next() {
-			n := &graph.Node{
+			n := &g.Node{
 				Name:       records.Record().Values[0].(string),
-				Type:       graph.ToNodeType(records.Record().Values[1].(string)),
-				Properties: graph.NewPropertyMap(),
+				Type:       g.ToNodeType(records.Record().Values[1].(string)),
+				Properties: g.NewPropertyMap(),
 			}
 
 			if m, ok := records.Record().Values[2].(map[string]interface{}); ok {
@@ -312,11 +312,11 @@ func (g *Graph) Nodes() set.Set {
 	return nodes.Union(result.(set.Set))
 }
 
-func (g *Graph) Exists(name string) bool {
+func (ng *graph) Exists(name string) bool {
 
-	session := g.driver.NewSession(neo4j.SessionConfig{
+	session := ng.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeRead,
-		DatabaseName: g.config.Database,
+		DatabaseName: ng.config.Database,
 	})
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
@@ -346,10 +346,10 @@ func (g *Graph) Exists(name string) bool {
 	return count > 0
 }
 
-func (g *Graph) Node(name string) (*graph.Node, error) {
-	session := g.driver.NewSession(neo4j.SessionConfig{
+func (ng *graph) Node(name string) (*g.Node, error) {
+	session := ng.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeRead,
-		DatabaseName: g.config.Database,
+		DatabaseName: ng.config.Database,
 	})
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
@@ -365,10 +365,10 @@ func (g *Graph) Node(name string) (*graph.Node, error) {
 			return nil, err
 		}
 
-		n := &graph.Node{
+		n := &g.Node{
 			Name:       record.Values[0].(string),
-			Type:       graph.ToNodeType(record.Values[1].(string)),
-			Properties: graph.NewPropertyMap(),
+			Type:       g.ToNodeType(record.Values[1].(string)),
+			Properties: g.NewPropertyMap(),
 		}
 
 		if m, ok := record.Values[2].(map[string]interface{}); ok {
@@ -393,28 +393,28 @@ func (g *Graph) Node(name string) (*graph.Node, error) {
 		return nil, err
 	}
 
-	return result.(*graph.Node), nil
+	return result.(*g.Node), nil
 }
 
-func (g *Graph) NodeFromDetails(t graph.NodeType, properties graph.PropertyMap) (*graph.Node, error) {
-	search := g.Search(t, properties).Iterator()
+func (ng *graph) NodeFromDetails(t g.NodeType, properties g.PropertyMap) (*g.Node, error) {
+	search := ng.Search(t, properties).Iterator()
 	if !search.HasNext() {
 		return nil, fmt.Errorf("a node matching the criteria (%s, %v) does not exist", t.String(), properties)
 	}
 
-	return search.Next().(*graph.Node), nil
+	return search.Next().(*g.Node), nil
 }
 
-func (g *Graph) Search(t graph.NodeType, properties graph.PropertyMap) set.Set {
+func (ng *graph) Search(t g.NodeType, properties g.PropertyMap) set.Set {
 	if properties == nil {
-		properties = graph.NewPropertyMap()
+		properties = g.NewPropertyMap()
 	}
 
 	results := set.NewSet()
 	// iterate over the nodes to find ones that match the search parameters
-	for n := range g.Nodes().Iter() {
-		node := n.(*graph.Node)
-		if node.Type != t && t != graph.NOOP {
+	for n := range ng.Nodes().Iter() {
+		node := n.(*g.Node)
+		if node.Type != t && t != g.NOOP {
 			continue
 		}
 
@@ -433,14 +433,14 @@ func (g *Graph) Search(t graph.NodeType, properties graph.PropertyMap) set.Set {
 	return results
 }
 
-func (g *Graph) Children(name string) set.Set {
-	if !g.Exists(name) {
+func (ng *graph) Children(name string) set.Set {
+	if !ng.Exists(name) {
 		log.Fatalf(node_not_found_msg, name)
 	}
 
-	session := g.driver.NewSession(neo4j.SessionConfig{
+	session := ng.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeRead,
-		DatabaseName: g.config.Database,
+		DatabaseName: ng.config.Database,
 	})
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
@@ -468,14 +468,14 @@ func (g *Graph) Children(name string) set.Set {
 	return nodes.Union(result.(set.Set))
 }
 
-func (g *Graph) Parents(name string) set.Set {
-	if !g.Exists(name) {
+func (ng *graph) Parents(name string) set.Set {
+	if !ng.Exists(name) {
 		log.Fatalf(node_not_found_msg, name)
 	}
 
-	session := g.driver.NewSession(neo4j.SessionConfig{
+	session := ng.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeRead,
-		DatabaseName: g.config.Database,
+		DatabaseName: ng.config.Database,
 	})
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
@@ -503,27 +503,27 @@ func (g *Graph) Parents(name string) set.Set {
 	return nodes.Union(result.(set.Set))
 }
 
-func (g *Graph) Assign(child, parent string) error {
-	if !g.Exists(child) {
+func (ng *graph) Assign(child, parent string) error {
+	if !ng.Exists(child) {
 		return fmt.Errorf(node_not_found_msg, child)
-	} else if !g.Exists(parent) {
+	} else if !ng.Exists(parent) {
 		return fmt.Errorf(node_not_found_msg, parent)
 	}
 
-	if g.IsAssigned(child, parent) {
+	if ng.IsAssigned(child, parent) {
 		return fmt.Errorf("%s is already assigned to %s", parent, child)
 	}
 
-	c, _ := g.Node(child)
-	p, _ := g.Node(parent)
+	c, _ := ng.Node(child)
+	p, _ := ng.Node(parent)
 
-	if err := graph.CheckAssignment(c.Type, p.Type); err != nil {
+	if err := g.CheckAssignment(c.Type, p.Type); err != nil {
 		return err
 	}
 
-	session := g.driver.NewSession(neo4j.SessionConfig{
+	session := ng.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeWrite,
-		DatabaseName: g.config.Database,
+		DatabaseName: ng.config.Database,
 	})
 
 	_, err := session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
@@ -539,16 +539,16 @@ func (g *Graph) Assign(child, parent string) error {
 	return err
 }
 
-func (g *Graph) Deassign(child, parent string) error {
-	if !g.Exists(child) {
+func (ng *graph) Deassign(child, parent string) error {
+	if !ng.Exists(child) {
 		return fmt.Errorf(node_not_found_msg, child)
-	} else if !g.Exists(parent) {
+	} else if !ng.Exists(parent) {
 		return fmt.Errorf(node_not_found_msg, parent)
 	}
 
-	session := g.driver.NewSession(neo4j.SessionConfig{
+	session := ng.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeWrite,
-		DatabaseName: g.config.Database,
+		DatabaseName: ng.config.Database,
 	})
 
 	_, err := session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
@@ -564,10 +564,10 @@ func (g *Graph) Deassign(child, parent string) error {
 	return err
 }
 
-func (g *Graph) IsAssigned(child, parent string) bool {
-	session := g.driver.NewSession(neo4j.SessionConfig{
+func (ng *graph) IsAssigned(child, parent string) bool {
+	session := ng.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeRead,
-		DatabaseName: g.config.Database,
+		DatabaseName: ng.config.Database,
 	})
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
@@ -598,27 +598,27 @@ func (g *Graph) IsAssigned(child, parent string) bool {
 	return count > 0
 }
 
-func (g *Graph) Associate(ua, target string, ops operations.OperationSet) error {
-	if !g.Exists(ua) {
+func (ng *graph) Associate(ua, target string, ops operations.OperationSet) error {
+	if !ng.Exists(ua) {
 		return fmt.Errorf(node_not_found_msg, ua)
-	} else if !g.Exists(target) {
+	} else if !ng.Exists(target) {
 		return fmt.Errorf(node_not_found_msg, target)
 	}
 
-	uaNode, _ := g.Node(ua)
-	targetNode, _ := g.Node(target)
+	uaNode, _ := ng.Node(ua)
+	targetNode, _ := ng.Node(target)
 
 	// check that the association is valid
-	if err := graph.CheckAssociation(uaNode.Type, targetNode.Type); err != nil {
+	if err := g.CheckAssociation(uaNode.Type, targetNode.Type); err != nil {
 		return err
 	}
 
 	// if no edge exists create an association
 	// if an assignment exists create a new edge for the association
 	// if an association exists update it
-	session := g.driver.NewSession(neo4j.SessionConfig{
+	session := ng.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeWrite,
-		DatabaseName: g.config.Database,
+		DatabaseName: ng.config.Database,
 	})
 
 	opsStr := make([]string, ops.Len())
@@ -659,14 +659,14 @@ func (g *Graph) Associate(ua, target string, ops operations.OperationSet) error 
 	return err
 }
 
-func (g *Graph) SourceAssociations(source string) (map[string]operations.OperationSet, error) {
-	if !g.Exists(source) {
+func (ng *graph) SourceAssociations(source string) (map[string]operations.OperationSet, error) {
+	if !ng.Exists(source) {
 		return nil, fmt.Errorf(node_not_found_msg, source)
 	}
 
-	session := g.driver.NewSession(neo4j.SessionConfig{
+	session := ng.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeRead,
-		DatabaseName: g.config.Database,
+		DatabaseName: ng.config.Database,
 	})
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
@@ -695,16 +695,16 @@ func (g *Graph) SourceAssociations(source string) (map[string]operations.Operati
 	return result.(map[string]operations.OperationSet), nil
 }
 
-func (g *Graph) Dissociate(ua, target string) error {
-	if !g.Exists(ua) {
+func (ng *graph) Dissociate(ua, target string) error {
+	if !ng.Exists(ua) {
 		return fmt.Errorf(node_not_found_msg, ua)
-	} else if !g.Exists(target) {
+	} else if !ng.Exists(target) {
 		return fmt.Errorf(node_not_found_msg, target)
 	}
 
-	session := g.driver.NewSession(neo4j.SessionConfig{
+	session := ng.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeWrite,
-		DatabaseName: g.config.Database,
+		DatabaseName: ng.config.Database,
 	})
 
 	_, err := session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
@@ -720,14 +720,14 @@ func (g *Graph) Dissociate(ua, target string) error {
 	return err
 }
 
-func (g *Graph) TargetAssociations(target string) (map[string]operations.OperationSet, error) {
-	if !g.Exists(target) {
+func (ng *graph) TargetAssociations(target string) (map[string]operations.OperationSet, error) {
+	if !ng.Exists(target) {
 		return nil, fmt.Errorf(node_not_found_msg, target)
 	}
 
-	session := g.driver.NewSession(neo4j.SessionConfig{
+	session := ng.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeRead,
-		DatabaseName: g.config.Database,
+		DatabaseName: ng.config.Database,
 	})
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
@@ -757,10 +757,10 @@ func (g *Graph) TargetAssociations(target string) (map[string]operations.Operati
 }
 
 // testing only
-func (g *Graph) reset() error {
-	session := g.driver.NewSession(neo4j.SessionConfig{
+func (ng *graph) reset() error {
+	session := ng.driver.NewSession(neo4j.SessionConfig{
 		AccessMode:   neo4j.AccessModeWrite,
-		DatabaseName: g.config.Database,
+		DatabaseName: ng.config.Database,
 	})
 	defer session.Close()
 

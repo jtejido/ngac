@@ -2,7 +2,7 @@ package memory
 
 import (
 	"ngac/pkg/operations"
-	"ngac/pkg/pip/graph"
+	gg "ngac/pkg/pip/graph"
 	"testing"
 )
 
@@ -15,7 +15,7 @@ func TestCreateNode(t *testing.T) {
 		t.Fatalf("failed to lookup policy class")
 	}
 
-	node, _ := g.CreateNode("oa", graph.OA, graph.ToProperties(graph.PropertyPair{"namespace", "test"}), pc.Name)
+	node, _ := g.CreateNode("oa", gg.OA, gg.ToProperties(gg.PropertyPair{"namespace", "test"}), pc.Name)
 
 	// check node is added
 	node, _ = g.Node(node.Name)
@@ -24,7 +24,7 @@ func TestCreateNode(t *testing.T) {
 		t.Fatalf("failed to lookup node")
 	}
 
-	if node.Type != graph.OA {
+	if node.Type != gg.OA {
 		t.Fatalf("failed to lookup type")
 	}
 }
@@ -32,13 +32,13 @@ func TestCreateNode(t *testing.T) {
 func TestUpdateNode(t *testing.T) {
 	g := New()
 
-	node, _ := g.CreatePolicyClass("node", graph.ToProperties(graph.PropertyPair{"namespace", "test"}))
+	node, _ := g.CreatePolicyClass("node", gg.ToProperties(gg.PropertyPair{"namespace", "test"}))
 
 	if err := g.UpdateNode("newNodeName", nil); err == nil {
 		t.Fatalf("failed to catch an error for non-existing node update")
 	}
 
-	g.UpdateNode("node", graph.ToProperties(graph.PropertyPair{"newKey", "newValue"}))
+	g.UpdateNode("node", gg.ToProperties(gg.PropertyPair{"newKey", "newValue"}))
 
 	n, _ := g.Node(node.Name)
 
@@ -50,7 +50,7 @@ func TestUpdateNode(t *testing.T) {
 func TestRemoveNode(t *testing.T) {
 	g := New()
 
-	node, _ := g.CreatePolicyClass("node", graph.ToProperties(graph.PropertyPair{"namespace", "test"}))
+	node, _ := g.CreatePolicyClass("node", gg.ToProperties(gg.PropertyPair{"namespace", "test"}))
 
 	g.RemoveNode(node.Name)
 
@@ -80,8 +80,8 @@ func TestChildren(t *testing.T) {
 
 	parentNode, _ := g.CreatePolicyClass("parent", nil)
 
-	child1Node, _ := g.CreateNode("child1", graph.OA, nil, "parent")
-	child2Node, _ := g.CreateNode("child2", graph.OA, nil, "parent")
+	child1Node, _ := g.CreateNode("child1", gg.OA, nil, "parent")
+	child2Node, _ := g.CreateNode("child2", gg.OA, nil, "parent")
 
 	children := g.Children(parentNode.Name)
 
@@ -94,8 +94,8 @@ func TestParents(t *testing.T) {
 	g := New()
 
 	parent1Node, _ := g.CreatePolicyClass("parent1", nil)
-	parent2Node, _ := g.CreateNode("parent2", graph.OA, nil, "parent1")
-	child1Node, _ := g.CreateNode("child1", graph.OA, nil, "parent1", "parent2")
+	parent2Node, _ := g.CreateNode("parent2", gg.OA, nil, "parent1")
+	child1Node, _ := g.CreateNode("child1", gg.OA, nil, "parent1", "parent2")
 
 	parents := g.Parents(child1Node.Name)
 
@@ -108,8 +108,8 @@ func TestAssign(t *testing.T) {
 	g := New()
 
 	parent1Node, _ := g.CreatePolicyClass("parent1", nil)
-	child1Node, _ := g.CreateNode("child1", graph.OA, nil, "parent1")
-	child2Node, _ := g.CreateNode("child2", graph.OA, nil, "parent1")
+	child1Node, _ := g.CreateNode("child1", gg.OA, nil, "parent1")
+	child2Node, _ := g.CreateNode("child2", gg.OA, nil, "parent1")
 
 	if err := g.Assign("1241124", "123442141"); err == nil {
 		t.Fatalf("should not assign non existing node ids")
@@ -134,7 +134,7 @@ func TestDeassign(t *testing.T) {
 	g := New()
 
 	parent1Node, _ := g.CreatePolicyClass("parent1", nil)
-	child1Node, _ := g.CreateNode("child1", graph.OA, nil, "parent1")
+	child1Node, _ := g.CreateNode("child1", gg.OA, nil, "parent1")
 
 	if err := g.Assign("", ""); err == nil {
 		t.Fatalf("should not assign non existing node ids")
@@ -160,8 +160,8 @@ func TestAssociate(t *testing.T) {
 	g := New()
 
 	g.CreatePolicyClass("pc", nil)
-	uaNode, _ := g.CreateNode("subject", graph.UA, nil, "pc")
-	targetNode, _ := g.CreateNode("target", graph.OA, nil, "pc")
+	uaNode, _ := g.CreateNode("subject", gg.UA, nil, "pc")
+	targetNode, _ := g.CreateNode("target", gg.OA, nil, "pc")
 
 	g.Associate(uaNode.Name, targetNode.Name, operations.NewOperationSet("read", "write"))
 
@@ -192,7 +192,7 @@ func TestAssociate(t *testing.T) {
 		t.Fatalf("failed to get right associations for target:  read/write")
 	}
 
-	g.CreateNode("test", graph.UA, nil, "subject")
+	g.CreateNode("test", gg.UA, nil, "subject")
 	g.Associate("test", "subject", operations.NewOperationSet("read"))
 	associations, err = g.SourceAssociations("test")
 	if err != nil {
@@ -213,8 +213,8 @@ func TestDissociate(t *testing.T) {
 	g := New()
 
 	g.CreatePolicyClass("pc", nil)
-	uaNode, _ := g.CreateNode("subject", graph.UA, nil, "pc")
-	targetNode, _ := g.CreateNode("target", graph.OA, nil, "pc")
+	uaNode, _ := g.CreateNode("subject", gg.UA, nil, "pc")
+	targetNode, _ := g.CreateNode("target", gg.OA, nil, "pc")
 
 	g.Associate(uaNode.Name, targetNode.Name, operations.NewOperationSet("read", "write"))
 	g.Dissociate(uaNode.Name, targetNode.Name)
@@ -244,8 +244,8 @@ func TestSourceAssociations(t *testing.T) {
 	g := New()
 
 	g.CreatePolicyClass("pc", nil)
-	uaNode, _ := g.CreateNode("subject", graph.UA, nil, "pc")
-	targetNode, _ := g.CreateNode("target", graph.OA, nil, "pc")
+	uaNode, _ := g.CreateNode("subject", gg.UA, nil, "pc")
+	targetNode, _ := g.CreateNode("target", gg.OA, nil, "pc")
 
 	g.Associate(uaNode.Name, targetNode.Name, operations.NewOperationSet("read", "write"))
 
@@ -272,8 +272,8 @@ func TestTargetAssociations(t *testing.T) {
 	g := New()
 
 	g.CreatePolicyClass("pc", nil)
-	uaNode, _ := g.CreateNode("subject", graph.UA, nil, "pc")
-	targetNode, _ := g.CreateNode("target", graph.OA, nil, "pc")
+	uaNode, _ := g.CreateNode("subject", gg.UA, nil, "pc")
+	targetNode, _ := g.CreateNode("target", gg.OA, nil, "pc")
 
 	g.Associate(uaNode.Name, targetNode.Name, operations.NewOperationSet("read", "write"))
 
@@ -300,46 +300,46 @@ func TestSearch(t *testing.T) {
 	g := New()
 
 	g.CreatePolicyClass("pc", nil)
-	g.CreateNode("oa1", graph.OA, graph.ToProperties(graph.PropertyPair{"namespace", "test"}), "pc")
-	g.CreateNode("oa2", graph.OA, graph.ToProperties(graph.PropertyPair{"key1", "value1"}), "pc")
-	g.CreateNode("oa3", graph.OA, graph.ToProperties(graph.PropertyPair{"key1", "value1"}, graph.PropertyPair{"key2", "value2"}), "pc")
+	g.CreateNode("oa1", gg.OA, gg.ToProperties(gg.PropertyPair{"namespace", "test"}), "pc")
+	g.CreateNode("oa2", gg.OA, gg.ToProperties(gg.PropertyPair{"key1", "value1"}), "pc")
+	g.CreateNode("oa3", gg.OA, gg.ToProperties(gg.PropertyPair{"key1", "value1"}, gg.PropertyPair{"key2", "value2"}), "pc")
 
 	// name and type no properties
-	nodes := g.Search(graph.OA, nil)
+	nodes := g.Search(gg.OA, nil)
 	if nodes.Len() != 3 {
 		t.Fatalf("incorrect length after search: %d", nodes.Len())
 	}
 
 	// one property
-	nodes = g.Search(-1, graph.ToProperties(graph.PropertyPair{"key1", "value1"}))
+	nodes = g.Search(-1, gg.ToProperties(gg.PropertyPair{"key1", "value1"}))
 	if nodes.Len() != 2 {
 		t.Fatalf("incorrect length after search: %d", nodes.Len())
 	}
 
 	// just namespace
-	nodes = g.Search(-1, graph.ToProperties(graph.PropertyPair{"namespace", "test"}))
+	nodes = g.Search(-1, gg.ToProperties(gg.PropertyPair{"namespace", "test"}))
 
 	if nodes.Len() != 1 {
 		t.Fatalf("incorrect length after search: %d", nodes.Len())
 	}
 
 	// name, type, namespace
-	nodes = g.Search(graph.OA, graph.ToProperties(graph.PropertyPair{"namespace", "test"}))
+	nodes = g.Search(gg.OA, gg.ToProperties(gg.PropertyPair{"namespace", "test"}))
 
 	if nodes.Len() != 1 {
 		t.Fatalf("incorrect length after search: %d", nodes.Len())
 	}
 
-	nodes = g.Search(graph.OA, graph.ToProperties(graph.PropertyPair{"namespace", "test"}))
+	nodes = g.Search(gg.OA, gg.ToProperties(gg.PropertyPair{"namespace", "test"}))
 	if nodes.Len() != 1 {
 		t.Fatalf("incorrect length after search: %d", nodes.Len())
 	}
 
-	nodes = g.Search(graph.OA, nil)
+	nodes = g.Search(gg.OA, nil)
 	if nodes.Len() != 3 {
 		t.Fatalf("incorrect length after search: %d", nodes.Len())
 	}
-	nodes = g.Search(graph.OA, graph.ToProperties(graph.PropertyPair{"key1", "value1"}))
+	nodes = g.Search(gg.OA, gg.ToProperties(gg.PropertyPair{"key1", "value1"}))
 	if nodes.Len() != 2 {
 		t.Fatalf("incorrect length after search: %d", nodes.Len())
 	}
@@ -353,9 +353,9 @@ func TestNodes(t *testing.T) {
 	g := New()
 
 	g.CreatePolicyClass("pc", nil)
-	g.CreateNode("node1", graph.OA, nil, "pc")
-	g.CreateNode("node2", graph.OA, nil, "pc")
-	g.CreateNode("node3", graph.OA, nil, "pc")
+	g.CreateNode("node1", gg.OA, nil, "pc")
+	g.CreateNode("node2", gg.OA, nil, "pc")
+	g.CreateNode("node3", gg.OA, nil, "pc")
 	// name and type no properties
 
 	if g.Nodes().Len() != 4 {
@@ -379,7 +379,7 @@ func TestNode(t *testing.T) {
 		t.Fatalf("incorrect node name")
 	}
 
-	if n.Type != graph.PC {
+	if n.Type != gg.PC {
 		t.Fatalf("incorrect node type")
 	}
 }
