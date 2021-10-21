@@ -1,7 +1,8 @@
-package obligations
+package memory
 
 import (
 	"math/rand"
+	ob "ngac/pkg/pip/obligations"
 	"runtime"
 	"sync"
 	"testing"
@@ -31,12 +32,12 @@ func TestAddGetConcurrent(t *testing.T) {
 	}
 	runtime.GOMAXPROCS(2)
 
-	s := NewMemObligations()
+	s := New()
 	var wg sync.WaitGroup
 	wg.Add(N)
 	for i := 0; i < N; i++ {
 		go func(i int) {
-			ob := NewObligation(pros[i])
+			ob := ob.NewObligation(pros[i])
 			ob.Label = pros[i]
 			s.Add(ob, false)
 			wg.Done()

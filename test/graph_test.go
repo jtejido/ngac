@@ -9,18 +9,18 @@ import (
     "ngac/pkg/pdp/decider"
     "ngac/pkg/pip"
     "ngac/pkg/pip/graph"
-    "ngac/pkg/pip/graph/memory"
-    "ngac/pkg/pip/obligations"
-    "ngac/pkg/pip/prohibitions"
+    gm "ngac/pkg/pip/graph/memory"
+    obm "ngac/pkg/pip/obligations/memory"
+    pm "ngac/pkg/pip/prohibitions/memory"
     "testing"
 )
 
 func TestPolicyClassReps(t *testing.T) {
     var g graph.Graph
-    g = memory.New()
-    mp := prohibitions.NewMemProhibitions()
+    g = gm.New()
+    mp := pm.New()
     ops := operations.NewOperationSet("read", "write", "execute")
-    functionalEntity := pip.NewPIP(g, mp, obligations.NewMemObligations())
+    functionalEntity := pip.NewPIP(g, mp, obm.New())
     p, err := pap.NewPAP(functionalEntity)
     if err != nil {
         t.Fatalf("%s", err)

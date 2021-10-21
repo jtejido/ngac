@@ -6,6 +6,7 @@ import (
 	"ngac/pkg/operations"
 	"ngac/pkg/pip/graph"
 	"ngac/pkg/pip/prohibitions"
+	"ngac/pkg/pip/prohibitions/memory"
 )
 
 var (
@@ -13,7 +14,7 @@ var (
 	_   Decider = prd
 )
 
-// An implementation of the Decider interface that uses an in memory NGAC graph
+// An implementation of the Decider interface that uses an in-memory Probitions.
 type PReviewDecider struct {
 	graph        graph.Graph
 	prohibitions prohibitions.Prohibitions
@@ -21,7 +22,7 @@ type PReviewDecider struct {
 }
 
 func NewPReviewDecider(graph graph.Graph, resourceOps operations.OperationSet) *PReviewDecider {
-	return NewPReviewDeciderWithProhibitions(graph, prohibitions.NewMemProhibitions(), resourceOps)
+	return NewPReviewDeciderWithProhibitions(graph, memory.New(), resourceOps)
 }
 
 func NewPReviewDeciderWithProhibitions(graph graph.Graph, prohibs prohibitions.Prohibitions, resourceOps operations.OperationSet) *PReviewDecider {
@@ -32,7 +33,7 @@ func NewPReviewDeciderWithProhibitions(graph graph.Graph, prohibs prohibitions.P
 		panic("resourceOps cannot be nil")
 	}
 	if prohibs == nil {
-		prohibs = prohibitions.NewMemProhibitions()
+		prohibs = memory.New()
 	}
 
 	d := new(PReviewDecider)

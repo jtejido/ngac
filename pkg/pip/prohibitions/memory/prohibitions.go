@@ -1,24 +1,25 @@
-package prohibitions
+package memory
 
 import (
+	p "ngac/pkg/pip/prohibitions"
 	"strings"
 	"sync"
 )
 
 var (
-	_ Prohibitions = &MemProhibitions{}
+	_ p.Prohibitions = &prohibitions{}
 )
 
-type MemProhibitions struct {
-	prohibitions map[string][]*Prohibition
+type prohibitions struct {
+	prohibitions map[string][]*p.Prohibition
 	sync.RWMutex
 }
 
-func NewMemProhibitions() *MemProhibitions {
-	return &MemProhibitions{prohibitions: make(map[string][]*Prohibition)}
+func New() *prohibitions {
+	return &prohibitions{prohibitions: make(map[string][]*p.Prohibition)}
 }
 
-func (mp *MemProhibitions) Add(prohibition *Prohibition) {
+func (mp *prohibitions) Add(prohibition *p.Prohibition) {
 	mp.Lock()
 	if prohibition == nil {
 		panic("a nil prohibition was received when creating a prohibition")
@@ -30,7 +31,7 @@ func (mp *MemProhibitions) Add(prohibition *Prohibition) {
 
 	prohibition = prohibition.Clone()
 	subject := prohibition.Subject
-	exPros := make([]*Prohibition, 0)
+	exPros := make([]*p.Prohibition, 0)
 	if v, ok := mp.prohibitions[subject]; ok {
 		exPros = v
 	}
@@ -41,8 +42,8 @@ func (mp *MemProhibitions) Add(prohibition *Prohibition) {
 	mp.Unlock()
 }
 
-func (mp *MemProhibitions) All() []*Prohibition {
-	pros := make([]*Prohibition, 0)
+func (mp *prohibitions) All() []*p.Prohibition {
+	pros := make([]*p.Prohibition, 0)
 	mp.RLock()
 	for _, pt := range mp.prohibitions {
 		for _, p := range pt {
@@ -53,7 +54,7 @@ func (mp *MemProhibitions) All() []*Prohibition {
 	return pros
 }
 
-func (mp *MemProhibitions) Get(prohibitionName string) *Prohibition {
+func (mp *prohibitions) Get(prohibitionName string) *p.Prohibition {
 	mp.RLock()
 	defer mp.RUnlock()
 	for _, ps := range mp.prohibitions {
@@ -67,8 +68,8 @@ func (mp *MemProhibitions) Get(prohibitionName string) *Prohibition {
 	return nil
 }
 
-func (mp *MemProhibitions) ProhibitionsFor(subject string) []*Prohibition {
-	ret := make([]*Prohibition, 0)
+func (mp *prohibitions) ProhibitionsFor(subject string) []*p.Prohibition {
+	ret := make([]*p.Prohibition, 0)
 	mp.RLock()
 	if pros, ok := mp.prohibitions[subject]; ok {
 		for _, p := range pros {
@@ -79,7 +80,7 @@ func (mp *MemProhibitions) ProhibitionsFor(subject string) []*Prohibition {
 	return ret
 }
 
-func (mp *MemProhibitions) Update(prohibitionName string, prohibition *Prohibition) {
+func (mp *prohibitions) Update(prohibitionName string, prohibition *p.Prohibition) {
 	if prohibition == nil {
 		panic("a null prohibition was provided when updating a prohibition")
 	}
@@ -92,7 +93,7 @@ func (mp *MemProhibitions) Update(prohibitionName string, prohibition *Prohibiti
 	mp.Unlock()
 }
 
-func (mp *MemProhibitions) Remove(prohibitionName string) {
+func (mp *prohibitions) Remove(prohibitionName string) {
 	mp.Lock()
 	for subject, ps := range mp.prohibitions {
 		for i := 0; i < len(ps); i++ {

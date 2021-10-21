@@ -7,6 +7,8 @@ import (
 	"ngac/pkg/pip/graph"
 )
 
+var _ graph.Graph = &Graph{}
+
 const (
 	node_not_found_msg = "node %s does not exist in the graph"
 )

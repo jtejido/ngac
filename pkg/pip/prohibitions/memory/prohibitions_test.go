@@ -1,8 +1,9 @@
-package prohibitions
+package memory
 
 import (
 	"math/rand"
 	"ngac/pkg/operations"
+	p "ngac/pkg/pip/prohibitions"
 	"runtime"
 	"sync"
 	"testing"
@@ -32,12 +33,12 @@ func TestAddGetConcurrent(t *testing.T) {
 	}
 	runtime.GOMAXPROCS(2)
 
-	s := NewMemProhibitions()
+	s := New()
 	var wg sync.WaitGroup
 	wg.Add(N)
 	for i := 0; i < N; i++ {
 		go func(i int) {
-			s.Add(NewProhibition(pros[i], pros[i], nil, nil, false))
+			s.Add(p.NewProhibition(pros[i], pros[i], nil, nil, false))
 			wg.Done()
 		}(i)
 	}
@@ -51,14 +52,14 @@ func TestAddGetConcurrent(t *testing.T) {
 }
 
 func TestCreateProhibition(t *testing.T) {
-	prohibs := NewMemProhibitions()
+	prohibs := New()
 
-	builder := NewBuilder("prohibition1", "123", operations.NewOperationSet("read"))
+	builder := p.NewBuilder("prohibition1", "123", operations.NewOperationSet("read"))
 	builder.AddContainer("1234", true)
 	prohibition := builder.Build()
 	prohibs.Add(prohibition)
 
-	builder = NewBuilder("p123", "sub", operations.NewOperationSet("read"))
+	builder = p.NewBuilder("p123", "sub", operations.NewOperationSet("read"))
 	builder.AddContainer("1234", true)
 	prohibition = builder.Build()
 
@@ -91,9 +92,9 @@ func TestCreateProhibition(t *testing.T) {
 }
 
 func TestGetProhibitions(t *testing.T) {
-	prohibs := NewMemProhibitions()
+	prohibs := New()
 
-	builder := NewBuilder("prohibition1", "123", operations.NewOperationSet("read"))
+	builder := p.NewBuilder("prohibition1", "123", operations.NewOperationSet("read"))
 	builder.AddContainer("1234", true)
 	prohibition := builder.Build()
 	prohibs.Add(prohibition)
@@ -105,9 +106,9 @@ func TestGetProhibitions(t *testing.T) {
 }
 
 func TestGetProhibition(t *testing.T) {
-	prohibs := NewMemProhibitions()
+	prohibs := New()
 
-	builder := NewBuilder("prohibition1", "123", operations.NewOperationSet("read"))
+	builder := p.NewBuilder("prohibition1", "123", operations.NewOperationSet("read"))
 	builder.AddContainer("1234", true)
 	prohibition := builder.Build()
 	prohibs.Add(prohibition)

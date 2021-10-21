@@ -1,11 +1,13 @@
 package epp
 
 import (
-    "fmt"
+    "errors"
     "ngac/pkg/pip/graph"
     "ngac/pkg/pip/obligations"
     "ngac/pkg/pip/prohibitions"
 )
+
+var poaInvalidEventContext = errors.New("Invalid event context for function parent_of_assign. Valid event contexts are AssignTo,  Assign, DeassignFrom, and Deassign")
 
 type ParentOfAssignExecutor struct{}
 
@@ -27,7 +29,7 @@ func (f *ParentOfAssignExecutor) Exec(g graph.Graph, p prohibitions.Prohibitions
     } else if v, ok := eventCtx.(*DeassignEvent); ok {
         parent = v.ParentNode
     } else {
-        return nil, fmt.Errorf("invalid event context for function parent_of_assign. Valid event contexts are AssignTo,  Assign, DeassignFrom, and Deassign")
+        return nil, poaInvalidEventContext
     }
 
     return parent, nil

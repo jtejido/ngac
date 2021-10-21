@@ -11,9 +11,10 @@ import (
     "ngac/pkg/pdp/decider"
     "ngac/pkg/pip"
     "ngac/pkg/pip/graph"
-    "ngac/pkg/pip/graph/memory"
+    gm "ngac/pkg/pip/graph/memory"
     "ngac/pkg/pip/obligations"
-    "ngac/pkg/pip/prohibitions"
+    obm "ngac/pkg/pip/obligations/memory"
+    pm "ngac/pkg/pip/prohibitions/memory"
     "testing"
 )
 
@@ -24,7 +25,7 @@ type testContext struct {
 
 func testCtx(t *testing.T) testContext {
     ops := operations.NewOperationSet("read", "write", "execute")
-    functionalEntity := pip.NewPIP(memory.New(), prohibitions.NewMemProhibitions(), obligations.NewMemObligations())
+    functionalEntity := pip.NewPIP(gm.New(), pm.New(), obm.New())
     p, err := pap.NewPAP(functionalEntity)
     if err != nil {
         t.Fatalf("%s", err)
