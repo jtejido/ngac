@@ -15,7 +15,7 @@ type prohibitions struct {
 	sync.RWMutex
 }
 
-func New() *prohibitions {
+func New() p.Prohibitions {
 	return &prohibitions{prohibitions: make(map[string][]*p.Prohibition)}
 }
 

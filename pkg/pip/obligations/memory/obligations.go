@@ -14,7 +14,7 @@ type obligations struct {
     sync.RWMutex
 }
 
-func New() *obligations {
+func New() ob.Obligations {
     return &obligations{obligations: make(map[string]*ob.Obligation)}
 }
 
