@@ -378,8 +378,8 @@ func TestNode(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
-	var err error
-	ng, err = New(`test_config.yaml`)
+	gg, err := New(`test_config.yaml`)
+	ng = gg.(*graph)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create graph: %s", err.Error()))
 	}

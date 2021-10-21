@@ -24,7 +24,7 @@ type graph struct {
 }
 
 // Accepts the config file's location for Neo4j
-func New(cfg string) (*graph, error) {
+func New(cfg string) (g.Graph, error) {
 	conf, err := config.LoadConfig(cfg)
 	if err != nil {
 		return nil, err

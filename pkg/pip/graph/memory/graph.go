@@ -21,7 +21,7 @@ type graph struct {
 	pcs   set.Set // contains all policies
 }
 
-func New() *graph {
+func New() g.Graph {
 	return &graph{
 		nodes: make(map[string]*g.Node),
 		from:  make(map[string]map[string]g.Edge),
