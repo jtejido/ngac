@@ -18,7 +18,7 @@ type Obligations struct {
     guard *guard.Obligations
 }
 
-func NewObligationsService(userCtx context.Context, p common.FunctionalEntity, e epp.EPP, d decider.Decider, a audit.Auditor) *Obligations {
+func NewObligationsService(userCtx context.Context, p common.PolicyStore, e epp.EPP, d decider.Decider, a audit.Auditor) *Obligations {
     ans := new(Obligations)
     ans.userCtx = userCtx
     ans.pap = p

@@ -13,7 +13,7 @@ type Prohibitions struct {
     Guard
 }
 
-func NewProhibitionsGuard(p common.FunctionalEntity, d decider.Decider) *Prohibitions {
+func NewProhibitionsGuard(p common.PolicyStore, d decider.Decider) *Prohibitions {
     ans := new(Prohibitions)
     ans.pap = p
     ans.decider = d

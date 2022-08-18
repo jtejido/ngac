@@ -1,7 +1,6 @@
 package decider
 
 import (
-	"math"
 	"ngac/internal/set"
 	"ngac/pkg/operations"
 	"ngac/pkg/pip/graph"
@@ -331,7 +330,7 @@ func (pr *PReviewDecider) processTargetDAG(target string, userCtx *userContext) 
 		return nil
 	}
 
-	ss := graph.NewIDS(pr.graph, math.MaxInt32)
+	ss := graph.NewDFS(pr.graph)
 	n, err := pr.graph.Node(target)
 	if err != nil {
 		return nil, err

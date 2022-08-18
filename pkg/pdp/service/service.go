@@ -14,7 +14,7 @@ import (
 
 type Service struct {
 	userCtx     context.Context
-	pap         common.FunctionalEntity
+	pap         common.PolicyStore
 	epp         epp.EPP
 	decider     decider.Decider
 	auditor     audit.Auditor

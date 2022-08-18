@@ -16,14 +16,14 @@ var (
 )
 
 type GraphAdmin struct {
-	pip         common.FunctionalEntity
+	pip         common.PolicyStore
 	graph       graph.Graph
 	superPolicy *policy.SuperPolicy
 }
 
 type pair = graph.PropertyPair
 
-func NewGraphAdmin(pip common.FunctionalEntity) (*GraphAdmin, error) {
+func NewGraphAdmin(pip common.PolicyStore) (*GraphAdmin, error) {
 	ans := &GraphAdmin{pip, pip.Graph(), policy.NewSuperPolicy()}
 	err := ans.superPolicy.Configure(ans.graph)
 	if err != nil {

@@ -13,7 +13,7 @@ type Obligations struct {
     Guard
 }
 
-func NewObligationsGuard(p common.FunctionalEntity, d decider.Decider) *Obligations {
+func NewObligationsGuard(p common.PolicyStore, d decider.Decider) *Obligations {
     ans := new(Obligations)
     ans.pap = p
     ans.decider = d
@@ -27,7 +27,7 @@ func (o *Obligations) CheckAdd(userCtx context.Context) error {
         return err
     }
     if !ok {
-        return fmt.Errorf("unauthorized permissions to create a policy class")
+        return fmt.Errorf("unauthorized permissions to add an obligation")
     }
 
     return nil
@@ -40,7 +40,7 @@ func (o *Obligations) CheckGet(userCtx context.Context) error {
         return err
     }
     if !ok {
-        return fmt.Errorf("unauthorized permissions to create a policy class")
+        return fmt.Errorf("unauthorized permissions to get obligation")
     }
     return nil
 }
@@ -52,7 +52,7 @@ func (o *Obligations) CheckUpdate(userCtx context.Context) error {
         return err
     }
     if !ok {
-        return fmt.Errorf("unauthorized permissions to create a policy class")
+        return fmt.Errorf("unauthorized permissions to update obligation")
     }
     return nil
 }
@@ -64,7 +64,7 @@ func (o *Obligations) CheckDelete(userCtx context.Context) error {
         return err
     }
     if !ok {
-        return fmt.Errorf("unauthorized permissions to create a policy class")
+        return fmt.Errorf("unauthorized permissions to delete obligation")
     }
     return nil
 }
@@ -76,7 +76,7 @@ func (o *Obligations) CheckEnable(userCtx context.Context) error {
         return err
     }
     if !ok {
-        return fmt.Errorf("unauthorized permissions to create a policy class")
+        return fmt.Errorf("unauthorized permissions to enable obligation")
     }
     return nil
 }

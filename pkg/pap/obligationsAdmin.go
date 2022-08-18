@@ -13,7 +13,7 @@ type ObligationsAdmin struct {
 	obligations obligations.Obligations
 }
 
-func NewObligationsAdmin(pip common.FunctionalEntity) *ObligationsAdmin {
+func NewObligationsAdmin(pip common.PolicyStore) *ObligationsAdmin {
 	return &ObligationsAdmin{pip.Obligations()}
 }
 

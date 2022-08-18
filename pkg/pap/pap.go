@@ -8,7 +8,7 @@ import (
 	"ngac/pkg/pip/tx"
 )
 
-var _ common.FunctionalEntity = &PAP{}
+var _ common.PolicyStore = &PAP{}
 
 type PAP struct {
 	graphAdmin        *GraphAdmin
@@ -16,7 +16,7 @@ type PAP struct {
 	obligationsAdmin  *ObligationsAdmin
 }
 
-func NewPAP(p common.FunctionalEntity) (*PAP, error) {
+func NewPAP(p common.PolicyStore) (*PAP, error) {
 	ga, err := NewGraphAdmin(p)
 	if err != nil {
 		return nil, err

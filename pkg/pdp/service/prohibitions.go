@@ -18,7 +18,7 @@ type Prohibitions struct {
     guard *guard.Prohibitions
 }
 
-func NewProhibitionsService(userCtx context.Context, p common.FunctionalEntity, e epp.EPP, d decider.Decider, a audit.Auditor) *Prohibitions {
+func NewProhibitionsService(userCtx context.Context, p common.PolicyStore, e epp.EPP, d decider.Decider, a audit.Auditor) *Prohibitions {
     ans := new(Prohibitions)
     ans.userCtx = userCtx
     ans.pap = p

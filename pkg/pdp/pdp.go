@@ -15,13 +15,13 @@ import (
 
 type PDP struct {
 	epp     *EPP
-	pap     common.FunctionalEntity
+	pap     common.PolicyStore
 	decider decider.Decider
 	auditor audit.Auditor
 }
 
 // func NewPDP(pap *pap.PAP, eppOptions *epp.EPPOptions) (pdp *PDP, err error) {
-func NewPDP(pap common.FunctionalEntity, eppOptions *epp.EPPOptions, decider decider.Decider, auditor audit.Auditor) *PDP {
+func NewPDP(pap common.PolicyStore, eppOptions *epp.EPPOptions, decider decider.Decider, auditor audit.Auditor) *PDP {
 	// create PDP
 	pdp := newPDP(pap, decider, auditor)
 	// create the EPP
@@ -38,13 +38,13 @@ func NewPDP(pap common.FunctionalEntity, eppOptions *epp.EPPOptions, decider dec
  * @param pap the Policy Administration Point that the PDP will use to change the graph.
  * @throws PMException if there is an error initializing the EPP.
  */
-func newPDP(pap common.FunctionalEntity, decider decider.Decider, auditor audit.Auditor) *PDP {
+func newPDP(pap common.PolicyStore, decider decider.Decider, auditor audit.Auditor) *PDP {
 	return &PDP{pap: pap, decider: decider, auditor: auditor}
 }
 
 type WithUser struct {
 	userCtx context.Context
-	pap     common.FunctionalEntity
+	pap     common.PolicyStore
 	epp     *EPP
 	decider decider.Decider
 	auditor audit.Auditor
@@ -54,13 +54,13 @@ type WithUser struct {
 	// analyticsService
 }
 
-var _ common.FunctionalEntity = &WithUser{}
+var _ common.PolicyStore = &WithUser{}
 
 func (p *PDP) WithUser(userCtx context.Context) *WithUser {
 	return newWithUser(userCtx, p.pap, p.epp, p.decider, p.auditor)
 }
 
-func newWithUser(u context.Context, p common.FunctionalEntity, e *EPP, d decider.Decider, a audit.Auditor) *WithUser {
+func newWithUser(u context.Context, p common.PolicyStore, e *EPP, d decider.Decider, a audit.Auditor) *WithUser {
 	return &WithUser{u, p, e, d, a, service.NewGraphService(u, p, e, d, a), service.NewProhibitionsService(u, p, e, d, a), service.NewObligationsService(u, p, e, d, a)}
 }
 

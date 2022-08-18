@@ -2,7 +2,6 @@ package audit
 
 import (
     "fmt"
-    "math"
     "ngac/internal/set"
     "ngac/pkg/operations"
     "ngac/pkg/pip/graph"
@@ -271,7 +270,7 @@ func (pa *PReviewAuditor) resolveOperationSet(ops, resourceOps operations.Operat
 }
 
 func (pa *PReviewAuditor) dfs(start *graph.Node) ([]*edgePath, error) {
-    searcher := graph.NewIDS(pa.graph, math.MaxInt32)
+    searcher := graph.NewDFS(pa.graph)
 
     paths := make([]*edgePath, 0)
     propPaths := make(map[string][]*edgePath)

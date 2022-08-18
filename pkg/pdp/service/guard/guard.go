@@ -11,7 +11,7 @@ import (
 )
 
 type Guard struct {
-	pap         common.FunctionalEntity
+	pap         common.PolicyStore
 	decider     decider.Decider
 	resourceOps operations.OperationSet
 }

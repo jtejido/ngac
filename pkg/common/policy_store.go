@@ -8,7 +8,7 @@ import (
 
 type TxRunner func(g graph.Graph, p prohibitions.Prohibitions, o obligations.Obligations) error
 
-type FunctionalEntity interface {
+type PolicyStore interface {
 	Graph() graph.Graph
 	Prohibitions() prohibitions.Prohibitions
 	Obligations() obligations.Obligations

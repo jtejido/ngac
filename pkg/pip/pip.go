@@ -8,7 +8,7 @@ import (
     "ngac/pkg/pip/tx"
 )
 
-var _ common.FunctionalEntity = &PIP{}
+var _ common.PolicyStore = &PIP{}
 
 type PIP struct {
     graph        graph.Graph

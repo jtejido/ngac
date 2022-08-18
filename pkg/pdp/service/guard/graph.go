@@ -15,7 +15,7 @@ type Graph struct {
     Guard
 }
 
-func NewGraphGuard(p common.FunctionalEntity, d decider.Decider) *Graph {
+func NewGraphGuard(p common.PolicyStore, d decider.Decider) *Graph {
     ans := new(Graph)
     ans.pap = p
     ans.decider = d

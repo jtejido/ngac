@@ -254,7 +254,7 @@ func (ng *graph) RemoveNode(name string) {
 	session.Close()
 }
 
-func (mng *graph) PolicyClasses() set.Set {
+func (ng *graph) PolicyClasses() set.Set {
 	namesPolicyClasses := set.NewSet()
 	nodes := ng.Nodes()
 	for node := range nodes.Iter() {

@@ -10,12 +10,12 @@ import (
 )
 
 type EPP struct {
-	pap               common.FunctionalEntity
+	pap               common.PolicyStore
 	pdp               *PDP
 	functionEvaluator *epp.FunctionEvaluator
 }
 
-func NewEPP(pap common.FunctionalEntity, p *PDP, eppOptions *epp.EPPOptions) *EPP {
+func NewEPP(pap common.PolicyStore, p *PDP, eppOptions *epp.EPPOptions) *EPP {
 	e := new(EPP)
 	e.pap = pap
 	e.pdp = p

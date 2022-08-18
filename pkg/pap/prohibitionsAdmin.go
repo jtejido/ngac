@@ -14,7 +14,7 @@ type ProhibitionsAdmin struct {
 	prohibitions prohibitions.Prohibitions
 }
 
-func NewProhibitionsAdmin(pip common.FunctionalEntity) *ProhibitionsAdmin {
+func NewProhibitionsAdmin(pip common.PolicyStore) *ProhibitionsAdmin {
 	return &ProhibitionsAdmin{pip.Prohibitions()}
 }
 

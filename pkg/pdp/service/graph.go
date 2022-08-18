@@ -21,7 +21,7 @@ type Graph struct {
     guard *guard.Graph
 }
 
-func NewGraphService(userCtx context.Context, p common.FunctionalEntity, e epp.EPP, d decider.Decider, a audit.Auditor) *Graph {
+func NewGraphService(userCtx context.Context, p common.PolicyStore, e epp.EPP, d decider.Decider, a audit.Auditor) *Graph {
     ans := new(Graph)
     ans.userCtx = userCtx
     ans.pap = p
