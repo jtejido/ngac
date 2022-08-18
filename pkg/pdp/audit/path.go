@@ -1,8 +1,8 @@
 package audit
 
 import (
-	"ngac/internal/set"
-	"ngac/pkg/pip/graph"
+	"github.com/jtejido/ngac/internal/set"
+	"github.com/jtejido/ngac/pkg/pip/graph"
 )
 
 type Path struct {

@@ -1,17 +1,17 @@
 package ngac
 
 import (
-    "ngac/pkg/context"
-    "ngac/pkg/operations"
-    "ngac/pkg/pap"
-    . "ngac/pkg/pdp"
-    "ngac/pkg/pdp/audit"
-    "ngac/pkg/pdp/decider"
-    "ngac/pkg/pip"
-    "ngac/pkg/pip/graph"
-    gm "ngac/pkg/pip/graph/memory"
-    obm "ngac/pkg/pip/obligations/memory"
-    pm "ngac/pkg/pip/prohibitions/memory"
+    "github.com/jtejido/ngac/pkg/context"
+    "github.com/jtejido/ngac/pkg/operations"
+    "github.com/jtejido/ngac/pkg/pap"
+    . "github.com/jtejido/ngac/pkg/pdp"
+    "github.com/jtejido/ngac/pkg/pdp/audit"
+    "github.com/jtejido/ngac/pkg/pdp/decider"
+    "github.com/jtejido/ngac/pkg/pip"
+    "github.com/jtejido/ngac/pkg/pip/graph"
+    gm "github.com/jtejido/ngac/pkg/pip/graph/memory"
+    obm "github.com/jtejido/ngac/pkg/pip/obligations/memory"
+    pm "github.com/jtejido/ngac/pkg/pip/prohibitions/memory"
     "testing"
 )
 

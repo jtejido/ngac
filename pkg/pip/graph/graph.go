@@ -1,8 +1,8 @@
 package graph
 
 import (
-	"ngac/internal/set"
-	"ngac/pkg/operations"
+	"github.com/jtejido/ngac/internal/set"
+	"github.com/jtejido/ngac/pkg/operations"
 )
 
 // An NGAC graph.

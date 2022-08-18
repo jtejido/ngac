@@ -1,8 +1,8 @@
 package memory
 
 import (
-	"ngac/pkg/operations"
-	gg "ngac/pkg/pip/graph"
+	"github.com/jtejido/ngac/pkg/operations"
+	gg "github.com/jtejido/ngac/pkg/pip/graph"
 	"testing"
 )
 

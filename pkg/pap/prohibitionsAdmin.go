@@ -2,8 +2,8 @@ package pap
 
 import (
 	"fmt"
-	"ngac/pkg/common"
-	"ngac/pkg/pip/prohibitions"
+	"github.com/jtejido/ngac/pkg/common"
+	"github.com/jtejido/ngac/pkg/pip/prohibitions"
 )
 
 var (

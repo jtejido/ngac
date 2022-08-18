@@ -1,16 +1,16 @@
 package pdp
 
 import (
-	"ngac/pkg/common"
-	"ngac/pkg/context"
-	"ngac/pkg/epp"
-	"ngac/pkg/pdp/audit"
-	"ngac/pkg/pdp/decider"
-	"ngac/pkg/pdp/service"
-	"ngac/pkg/pip/graph"
-	"ngac/pkg/pip/obligations"
-	"ngac/pkg/pip/prohibitions"
-	"ngac/pkg/pip/tx"
+	"github.com/jtejido/ngac/pkg/common"
+	"github.com/jtejido/ngac/pkg/context"
+	"github.com/jtejido/ngac/pkg/epp"
+	"github.com/jtejido/ngac/pkg/pdp/audit"
+	"github.com/jtejido/ngac/pkg/pdp/decider"
+	"github.com/jtejido/ngac/pkg/pdp/service"
+	"github.com/jtejido/ngac/pkg/pip/graph"
+	"github.com/jtejido/ngac/pkg/pip/obligations"
+	"github.com/jtejido/ngac/pkg/pip/prohibitions"
+	"github.com/jtejido/ngac/pkg/pip/tx"
 )
 
 type PDP struct {

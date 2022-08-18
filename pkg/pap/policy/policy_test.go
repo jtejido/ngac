@@ -1,8 +1,8 @@
 package policy
 
 import (
-	"ngac/pkg/pip/graph"
-	"ngac/pkg/pip/graph/memory"
+	"github.com/jtejido/ngac/pkg/pip/graph"
+	"github.com/jtejido/ngac/pkg/pip/graph/memory"
 	"testing"
 )
 

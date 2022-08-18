@@ -1,12 +1,12 @@
 package pdp
 
 import (
-	"ngac/pkg/common"
-	"ngac/pkg/context"
-	"ngac/pkg/epp"
-	"ngac/pkg/pip/graph"
-	"ngac/pkg/pip/obligations"
-	"ngac/pkg/pip/prohibitions"
+	"github.com/jtejido/ngac/pkg/common"
+	"github.com/jtejido/ngac/pkg/context"
+	"github.com/jtejido/ngac/pkg/epp"
+	"github.com/jtejido/ngac/pkg/pip/graph"
+	"github.com/jtejido/ngac/pkg/pip/obligations"
+	"github.com/jtejido/ngac/pkg/pip/prohibitions"
 )
 
 type EPP struct {

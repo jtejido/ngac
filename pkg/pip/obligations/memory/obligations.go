@@ -1,7 +1,7 @@
 package memory
 
 import (
-    ob "ngac/pkg/pip/obligations"
+    ob "github.com/jtejido/ngac/pkg/pip/obligations"
     "sync"
 )
 

@@ -3,12 +3,12 @@ package neo4j
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/jtejido/ngac/internal/set"
+	"github.com/jtejido/ngac/pkg/config"
+	"github.com/jtejido/ngac/pkg/operations"
+	g "github.com/jtejido/ngac/pkg/pip/graph"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"log"
-	"ngac/internal/set"
-	"ngac/pkg/config"
-	"ngac/pkg/operations"
-	g "ngac/pkg/pip/graph"
 	"strings"
 )
 

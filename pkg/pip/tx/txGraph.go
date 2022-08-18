@@ -2,9 +2,9 @@ package tx
 
 import (
     "fmt"
-    "ngac/internal/set"
-    "ngac/pkg/operations"
-    "ngac/pkg/pip/graph"
+    "github.com/jtejido/ngac/internal/set"
+    "github.com/jtejido/ngac/pkg/operations"
+    "github.com/jtejido/ngac/pkg/pip/graph"
     "sync"
 )
 

@@ -1,12 +1,12 @@
 package decider
 
 import (
-	"ngac/internal/set"
-	"ngac/pkg/operations"
-	"ngac/pkg/pip/graph"
-	gm "ngac/pkg/pip/graph/memory"
-	"ngac/pkg/pip/prohibitions"
-	obm "ngac/pkg/pip/prohibitions/memory"
+	"github.com/jtejido/ngac/internal/set"
+	"github.com/jtejido/ngac/pkg/operations"
+	"github.com/jtejido/ngac/pkg/pip/graph"
+	gm "github.com/jtejido/ngac/pkg/pip/graph/memory"
+	"github.com/jtejido/ngac/pkg/pip/prohibitions"
+	obm "github.com/jtejido/ngac/pkg/pip/prohibitions/memory"
 	"testing"
 )
 

@@ -1,7 +1,7 @@
 package operations
 
 import (
-	"ngac/internal/set"
+	"github.com/jtejido/ngac/internal/set"
 )
 
 const (

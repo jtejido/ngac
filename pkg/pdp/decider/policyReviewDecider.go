@@ -1,11 +1,11 @@
 package decider
 
 import (
-	"ngac/internal/set"
-	"ngac/pkg/operations"
-	"ngac/pkg/pip/graph"
-	"ngac/pkg/pip/prohibitions"
-	"ngac/pkg/pip/prohibitions/memory"
+	"github.com/jtejido/ngac/internal/set"
+	"github.com/jtejido/ngac/pkg/operations"
+	"github.com/jtejido/ngac/pkg/pip/graph"
+	"github.com/jtejido/ngac/pkg/pip/prohibitions"
+	"github.com/jtejido/ngac/pkg/pip/prohibitions/memory"
 )
 
 var (

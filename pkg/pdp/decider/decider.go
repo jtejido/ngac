@@ -1,6 +1,6 @@
 package decider
 
-import "ngac/internal/set"
+import "github.com/jtejido/ngac/internal/set"
 
 type Decider interface {
 	/**

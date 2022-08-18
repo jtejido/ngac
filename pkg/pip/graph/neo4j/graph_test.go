@@ -2,8 +2,8 @@ package neo4j
 
 // import (
 // 	"fmt"
-// 	"ngac/pkg/operations"
-// 	g "ngac/pkg/pip/graph"
+// 	"github.com/jtejido/ngac/pkg/operations"
+// 	g "github.com/jtejido/ngac/pkg/pip/graph"
 // 	"os"
 // 	"testing"
 // )

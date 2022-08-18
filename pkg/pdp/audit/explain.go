@@ -1,7 +1,7 @@
 package audit
 
 import (
-    "ngac/internal/set"
+    "github.com/jtejido/ngac/internal/set"
 )
 
 type Explain struct {

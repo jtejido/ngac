@@ -1,7 +1,7 @@
 package memory
 
 import (
-	p "ngac/pkg/pip/prohibitions"
+	p "github.com/jtejido/ngac/pkg/pip/prohibitions"
 	"strings"
 	"sync"
 )

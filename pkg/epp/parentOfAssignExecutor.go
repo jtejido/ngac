@@ -2,9 +2,9 @@ package epp
 
 import (
     "errors"
-    "ngac/pkg/pip/graph"
-    "ngac/pkg/pip/obligations"
-    "ngac/pkg/pip/prohibitions"
+    "github.com/jtejido/ngac/pkg/pip/graph"
+    "github.com/jtejido/ngac/pkg/pip/obligations"
+    "github.com/jtejido/ngac/pkg/pip/prohibitions"
 )
 
 var poaInvalidEventContext = errors.New("Invalid event context for function parent_of_assign. Valid event contexts are AssignTo,  Assign, DeassignFrom, and Deassign")

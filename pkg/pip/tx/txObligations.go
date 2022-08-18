@@ -1,7 +1,7 @@
 package tx
 
 import (
-    "ngac/pkg/pip/obligations"
+    "github.com/jtejido/ngac/pkg/pip/obligations"
     "sync"
 )
 

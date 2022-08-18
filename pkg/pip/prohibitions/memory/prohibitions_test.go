@@ -1,9 +1,9 @@
 package memory
 
 import (
+	"github.com/jtejido/ngac/pkg/operations"
+	p "github.com/jtejido/ngac/pkg/pip/prohibitions"
 	"math/rand"
-	"ngac/pkg/operations"
-	p "ngac/pkg/pip/prohibitions"
 	"runtime"
 	"sync"
 	"testing"

@@ -2,9 +2,9 @@ package memory
 
 import (
 	"fmt"
-	"ngac/internal/set"
-	"ngac/pkg/operations"
-	g "ngac/pkg/pip/graph"
+	"github.com/jtejido/ngac/internal/set"
+	"github.com/jtejido/ngac/pkg/operations"
+	g "github.com/jtejido/ngac/pkg/pip/graph"
 )
 
 var _ g.Graph = &graph{}

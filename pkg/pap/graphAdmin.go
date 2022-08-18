@@ -2,13 +2,13 @@ package pap
 
 import (
 	"fmt"
-	"ngac/internal/set"
-	"ngac/pkg/common"
-	"ngac/pkg/operations"
-	"ngac/pkg/pap/policy"
-	"ngac/pkg/pip/graph"
-	"ngac/pkg/pip/obligations"
-	"ngac/pkg/pip/prohibitions"
+	"github.com/jtejido/ngac/internal/set"
+	"github.com/jtejido/ngac/pkg/common"
+	"github.com/jtejido/ngac/pkg/operations"
+	"github.com/jtejido/ngac/pkg/pap/policy"
+	"github.com/jtejido/ngac/pkg/pip/graph"
+	"github.com/jtejido/ngac/pkg/pip/obligations"
+	"github.com/jtejido/ngac/pkg/pip/prohibitions"
 )
 
 var (

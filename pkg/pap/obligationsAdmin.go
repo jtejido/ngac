@@ -1,8 +1,8 @@
 package pap
 
 import (
-	"ngac/pkg/common"
-	"ngac/pkg/pip/obligations"
+	"github.com/jtejido/ngac/pkg/common"
+	"github.com/jtejido/ngac/pkg/pip/obligations"
 )
 
 var (

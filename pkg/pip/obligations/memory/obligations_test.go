@@ -1,8 +1,8 @@
 package memory
 
 import (
+	ob "github.com/jtejido/ngac/pkg/pip/obligations"
 	"math/rand"
-	ob "ngac/pkg/pip/obligations"
 	"runtime"
 	"sync"
 	"testing"

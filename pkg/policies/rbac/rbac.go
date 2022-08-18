@@ -2,10 +2,10 @@ package rbac
 
 import (
 	"fmt"
-	"ngac/pkg/context"
-	"ngac/pkg/operations"
-	"ngac/pkg/pdp"
-	"ngac/pkg/pip/graph"
+	"github.com/jtejido/ngac/pkg/context"
+	"github.com/jtejido/ngac/pkg/operations"
+	"github.com/jtejido/ngac/pkg/pdp"
+	"github.com/jtejido/ngac/pkg/pip/graph"
 	"sync"
 )
 
@@ -36,11 +36,11 @@ func PCNode() *graph.Node {
  * Utilities for any operation relating to the RBAC NGAC concept
  */
 type RBAC struct {
-	mu *sync.RWMutex
+	sync.RWMutex
 }
 
 func New() *RBAC {
-	return &RBAC{mu: new(sync.RWMutex)}
+	return &RBAC{}
 }
 
 /**
@@ -57,8 +57,8 @@ func New() *RBAC {
  * @throws PMException
  */
 func (policy *RBAC) Configure(RBACname string, p *pdp.PDP, superUserContext context.Context) (rbac_pc_node *graph.Node, err error) {
-	policy.mu.Lock()
-	defer policy.mu.Unlock()
+	policy.Lock()
+	defer policy.Unlock()
 	g := p.WithUser(superUserContext).Graph()
 
 	// todo: on-boarding methods.
@@ -90,8 +90,8 @@ func (policy *RBAC) Configure(RBACname string, p *pdp.PDP, superUserContext cont
 
 // create user and assign role
 func (policy *RBAC) CreateUserAndAssignRole(p *pdp.PDP, superUserContext context.Context, userName, roleName string) (*graph.Node, error) {
-	policy.mu.Lock()
-	defer policy.mu.Unlock()
+	policy.Lock()
+	defer policy.Unlock()
 	g := p.WithUser(superUserContext).Graph()
 	if len(roleName) == 0 || !g.Exists(roleName) {
 		return nil, fmt.Errorf("Role must exist.")
@@ -108,8 +108,8 @@ func (policy *RBAC) CreateUserAndAssignRole(p *pdp.PDP, superUserContext context
 
 // assign role
 func (policy *RBAC) AssignRole(p *pdp.PDP, superUserContext context.Context, userName, roleName string) error {
-	policy.mu.Lock()
-	defer policy.mu.Unlock()
+	policy.Lock()
+	defer policy.Unlock()
 	g := p.WithUser(superUserContext).Graph()
 	if len(roleName) == 0 || !g.Exists(roleName) {
 		return fmt.Errorf("Role must exist.")
@@ -124,8 +124,8 @@ func (policy *RBAC) AssignRole(p *pdp.PDP, superUserContext context.Context, use
 
 // remove role
 func (policy *RBAC) DeassignRole(p *pdp.PDP, superUserContext context.Context, userName, roleName string) error {
-	policy.mu.Lock()
-	defer policy.mu.Unlock()
+	policy.Lock()
+	defer policy.Unlock()
 	g := p.WithUser(superUserContext).Graph()
 	if len(roleName) == 0 || !g.Exists(roleName) {
 		return fmt.Errorf("Role must exist.")
@@ -140,8 +140,8 @@ func (policy *RBAC) DeassignRole(p *pdp.PDP, superUserContext context.Context, u
 
 // create role
 func (policy *RBAC) CreateRole(p *pdp.PDP, superUserContext context.Context, roleName string) (*graph.Node, error) {
-	policy.mu.Lock()
-	defer policy.mu.Unlock()
+	policy.Lock()
+	defer policy.Unlock()
 	g := p.WithUser(superUserContext).Graph()
 	if len(roleName) == 0 || !g.Exists(roleName) {
 		return nil, fmt.Errorf("Role must exist.")
@@ -159,8 +159,8 @@ func (policy *RBAC) DeleteRole(p *pdp.PDP, superUserContext context.Context, rol
 
 // get user roles
 func (policy *RBAC) UserRoles(p *pdp.PDP, superUserContext context.Context, userName string) (s []string, err error) {
-	policy.mu.RLock()
-	defer policy.mu.RUnlock()
+	policy.RLock()
+	defer policy.RUnlock()
 	g := p.WithUser(superUserContext).Graph()
 	if len(userName) == 0 || !g.Exists(userName) {
 		return s, fmt.Errorf("User must exist.")
@@ -179,8 +179,8 @@ func (policy *RBAC) UserRoles(p *pdp.PDP, superUserContext context.Context, user
 
 // set_role_permissions
 func (policy *RBAC) SetRolePermissions(p *pdp.PDP, superUserContext context.Context, roleName string, ops operations.OperationSet, targetName string) error {
-	policy.mu.Lock()
-	defer policy.mu.Unlock()
+	policy.Lock()
+	defer policy.Unlock()
 	g := p.WithUser(superUserContext).Graph()
 	if len(roleName) == 0 || !g.Exists(roleName) {
 		return fmt.Errorf("Role must exist.")
@@ -198,8 +198,8 @@ func (policy *RBAC) SetRolePermissions(p *pdp.PDP, superUserContext context.Cont
 
 // get_role_permissions
 func (policy *RBAC) RolePermissions(p *pdp.PDP, superUserContext context.Context, roleName string) (map[string]operations.OperationSet, error) {
-	policy.mu.RLock()
-	defer policy.mu.RUnlock()
+	policy.RLock()
+	defer policy.RUnlock()
 	g := p.WithUser(superUserContext).Graph()
 	if len(roleName) == 0 || !g.Exists(roleName) {
 		return nil, fmt.Errorf("Role must exist.")

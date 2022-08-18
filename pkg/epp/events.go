@@ -1,10 +1,10 @@
 package epp
 
 import (
-	"ngac/internal/set"
-	"ngac/pkg/context"
-	"ngac/pkg/pip/graph"
-	"ngac/pkg/pip/obligations"
+	"github.com/jtejido/ngac/internal/set"
+	"github.com/jtejido/ngac/pkg/context"
+	"github.com/jtejido/ngac/pkg/pip/graph"
+	"github.com/jtejido/ngac/pkg/pip/obligations"
 )
 
 const (

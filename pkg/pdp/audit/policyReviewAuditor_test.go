@@ -1,10 +1,10 @@
 package audit
 
 import (
-	"ngac/internal/set"
-	"ngac/pkg/operations"
-	"ngac/pkg/pip/graph"
-	"ngac/pkg/pip/graph/memory"
+	"github.com/jtejido/ngac/internal/set"
+	"github.com/jtejido/ngac/pkg/operations"
+	"github.com/jtejido/ngac/pkg/pip/graph"
+	"github.com/jtejido/ngac/pkg/pip/graph/memory"
 	"sort"
 	"strings"
 	"testing"
